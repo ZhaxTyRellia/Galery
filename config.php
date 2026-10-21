@@ -13,6 +13,7 @@ $mediaDirectory = 'E:\0 - B9\Assets';
 // Password access: leave empty '' to disable login, or enter a password to protect gallery.
 $galleryPassword = '';
 
-// Extensions treated as images / videos.
+// Extensions treated as images / videos / music.
 $imageExtensions = array('jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg');
 $videoExtensions = array('mp4', 'webm', 'ogg', 'mkv', 'avi', 'mov');
+$audioExtensions = array('mp3', 'wav', 'ogg', 'm4a', 'flac', 'aac', 'wma');

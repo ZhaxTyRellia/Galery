@@ -51,6 +51,12 @@ body {
   overflow-x: hidden;
   position: relative;
   -webkit-font-smoothing: antialiased;
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cpath d='M4 3 L20 18 L12 18 L16 28 L12 29 L8 19 L4 23 Z' fill='%23ff758c' stroke='%23ffffff' stroke-width='2' stroke-linejoin='round'/%3E%3Cpath d='M21 3 L22 6 L25 7 L22 8 L21 11 L20 8 L17 7 L20 6 Z' fill='%23ffd166'/%3E%3Ccircle cx='25' cy='12' r='1.5' fill='%23ffffff'/%3E%3C/svg%3E") 4 3, auto;
+}
+
+/* Cute Interactive Cursor on Clickable Elements */
+a, button, select, input, label, .media-card, .folder-card, .close-btn, .nav-item, .player-btn, .action-btn, .back-folder-btn {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cpath d='M16 26 C16 26 5 19 5 11 C5 6.5 8.5 3 13 3 C14.8 3 16.5 3.8 17.5 5 C18.5 3.8 20.2 3 22 3 C26.5 3 30 6.5 30 11 C30 19 19 26 19 26 Z' fill='%23ff5376' stroke='%23ffffff' stroke-width='2' stroke-linejoin='round'/%3E%3Cpath d='M10 8 C9 10 9 12 10 14' stroke='%23ffffff' stroke-width='1.8' stroke-linecap='round' fill='none'/%3E%3Cpath d='M25 2 L26 4 L28 5 L26 6 L25 8 L24 6 L22 5 L24 4 Z' fill='%23ffd166'/%3E%3C/svg%3E") 16 11, pointer;
 }
 
 @keyframes gradientBG {
@@ -1489,4 +1495,157 @@ body {
     opacity: 1;
     transform: translateY(0) scale(1);
   }
+}
+
+
+/* ================= AUDIO / MUSIC CARD & PLAYER ================= */
+.audio-card-visual {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle, #ffeef4 0%, #f4edff 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.vinyl-record {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #2d1d2b 0%, #151119 70%, #2b1f2e 100%);
+  border: 3px solid rgba(255, 182, 193, 0.7);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25), inset 0 0 0 8px rgba(255, 255, 255, 0.04), inset 0 0 0 16px rgba(255, 255, 255, 0.03);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+}
+
+.vinyl-center {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--grad-berry);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.95rem;
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.media-card:hover .vinyl-record {
+  animation: spinVinyl 2.8s linear infinite;
+  box-shadow: 0 12px 28px rgba(255, 117, 140, 0.4);
+}
+
+@keyframes spinVinyl {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.audio-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 20px;
+  margin-top: 10px;
+}
+
+.audio-bars span {
+  width: 4px;
+  background: var(--pink-primary);
+  border-radius: 2px;
+  animation: equalize 1s ease-in-out infinite alternate;
+}
+
+.audio-bars span:nth-child(1) { height: 6px; animation-delay: 0.1s; }
+.audio-bars span:nth-child(2) { height: 14px; animation-delay: 0.3s; }
+.audio-bars span:nth-child(3) { height: 20px; animation-delay: 0.2s; }
+.audio-bars span:nth-child(4) { height: 10px; animation-delay: 0.4s; }
+.audio-bars span:nth-child(5) { height: 16px; animation-delay: 0.15s; }
+
+@keyframes equalize {
+  0% { transform: scaleY(0.4); }
+  100% { transform: scaleY(1.2); }
+}
+
+/* Modal Audio Box */
+.modal-audio-box {
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(20px);
+  border: 3px solid var(--pink-soft);
+  border-radius: var(--radius-lg);
+  padding: 34px 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 22px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35), 0 0 35px rgba(255, 182, 193, 0.5);
+  max-width: 520px;
+  width: 90vw;
+}
+
+.modal-audio-cover {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.modal-vinyl-disc {
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #2d1d2b 0%, #151119 70%, #2b1f2e 100%);
+  border: 4px solid var(--pink-soft);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), inset 0 0 0 14px rgba(255, 255, 255, 0.04), inset 0 0 0 28px rgba(255, 255, 255, 0.03);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.modal-vinyl-disc.spinning {
+  animation: spinVinyl 4s linear infinite;
+}
+
+.modal-vinyl-core {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--grad-berry);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(255, 83, 118, 0.5);
+}
+
+.modal-audio-title-tag {
+  font-family: "Fredoka", sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  text-align: center;
+  max-width: 420px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  background: rgba(255, 240, 245, 0.85);
+  border: 1.5px solid var(--pink-soft);
+  padding: 6px 18px;
+  border-radius: var(--radius-pill);
+}
+
+.modal-audio-player {
+  width: 100%;
+  border-radius: var(--radius-pill);
+  outline: none;
+  filter: drop-shadow(0 4px 10px rgba(255, 117, 140, 0.25));
 }

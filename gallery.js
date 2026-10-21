@@ -136,6 +136,22 @@ function playMediaAtVisibleIndex(index) {
                 </video>
             </div>
         `;
+    } else if (type === 'music') {
+        mediaHtml = `
+            <div class="modal-media-wrapper modal-audio-box">
+                <div class="modal-audio-cover">
+                    <div class="modal-vinyl-disc spinning">
+                        <div class="modal-vinyl-grooves"></div>
+                        <div class="modal-vinyl-core">🎵</div>
+                    </div>
+                    <div class="modal-audio-title-tag">${escapeHtml(title)}</div>
+                </div>
+                <audio id="activeAudio" controls autoplay class="modal-audio-player">
+                    <source src="${mediaUrl}">
+                    Your browser does not support playing this audio format yet~ 🥺
+                </audio>
+            </div>
+        `;
     }
 
     // Decode relPath for API calls
@@ -150,7 +166,7 @@ function playMediaAtVisibleIndex(index) {
             </div>
             <div class="player-buttons">
                 <button class="player-btn" onclick="playPrev()" title="Previous (Left Arrow)">⏮ Prev</button>
-                ${type === 'video' ? `<button id="loopBtn" class="player-btn ${isLoopSingle ? 'active' : ''}" onclick="toggleLoop()" title="Loop this video">🔁 Loop ${isLoopSingle ? 'Active 💖' : 'Single'}</button>` : ''}
+                ${(type === 'video' || type === 'music') ? `<button id="loopBtn" class="player-btn ${isLoopSingle ? 'active' : ''}" onclick="toggleLoop()" title="Loop this track">🔁 Loop ${isLoopSingle ? 'Active 💖' : 'Single'}</button>` : ''}
                 <button class="player-btn" onclick="triggerRenameFromModal()" title="Rename this file">✏️ Rename</button>
                 <button class="player-btn player-btn-danger" onclick="triggerDeleteFromModal()" title="Delete this file">🗑️ Delete</button>
                 <a href="${mediaUrl}" target="_blank" id="modalFullLink" class="player-btn" title="Open full media in new tab">↗ Full ✨</a>
@@ -166,6 +182,18 @@ function playMediaAtVisibleIndex(index) {
                 if (isLoopSingle) {
                     videoElement.currentTime = 0;
                     videoElement.play();
+                } else {
+                    playNext();
+                }
+            };
+        }
+    } else if (type === 'music') {
+        const audioElement = document.getElementById('activeAudio');
+        if (audioElement) {
+            audioElement.onended = function() {
+                if (isLoopSingle) {
+                    audioElement.currentTime = 0;
+                    audioElement.play();
                 } else {
                     playNext();
                 }
@@ -222,6 +250,11 @@ function closePlayer() {
     if (video) {
         video.pause();
         video.src = '';
+    }
+    const audio = modal.querySelector('audio');
+    if (audio) {
+        audio.pause();
+        audio.src = '';
     }
 
     modal.style.display = 'none';
@@ -548,12 +581,14 @@ document.addEventListener('keydown', function(e) {
             playPrev();
         } else if (e.key === ' ' || e.code === 'Space') {
             const video = document.getElementById('activeVideo');
-            if (video && e.target.tagName !== 'INPUT') {
+            const audio = document.getElementById('activeAudio');
+            const media = video || audio;
+            if (media && e.target.tagName !== 'INPUT') {
                 e.preventDefault();
-                if (video.paused) {
-                    video.play();
+                if (media.paused) {
+                    media.play();
                 } else {
-                    video.pause();
+                    media.pause();
                 }
             }
         }

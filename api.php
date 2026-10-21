@@ -58,7 +58,7 @@ if ($action === 'rename') {
     $newExt = strtolower(pathinfo($newName, PATHINFO_EXTENSION));
 
     // If newName doesn't have an extension, preserve original extension
-    if ($newExt === '' || !in_array($newExt, array_merge($imageExtensions, $videoExtensions), true)) {
+    if ($newExt === '' || !in_array($newExt, array_merge($imageExtensions, $videoExtensions, $audioExtensions), true)) {
         $cleanBase = pathinfo($newName, PATHINFO_FILENAME);
         $newName = ($cleanBase !== '' ? $cleanBase : 'file') . '.' . $oldExt;
     }
@@ -109,7 +109,7 @@ if ($action === 'delete') {
 
     // Check extension whitelist
     $ext = strtolower(pathinfo($targetFullPath, PATHINFO_EXTENSION));
-    if (!in_array($ext, array_merge($imageExtensions, $videoExtensions), true)) {
+    if (!in_array($ext, array_merge($imageExtensions, $videoExtensions, $audioExtensions), true)) {
         echo json_encode(array('success' => false, 'error' => 'Cannot delete non-media files.'));
         exit;
     }

@@ -87,9 +87,9 @@ if ($isAuthEnabled) {
     }
 }
 
-// Category filter: strictly 'image' or 'video' (No 'all' menu)
+// Category filter: strictly 'image', 'video', or 'music'
 $category = isset($_GET['cat']) ? $_GET['cat'] : 'image';
-if (!in_array($category, array('image', 'video'), true)) {
+if (!in_array($category, array('image', 'video', 'music'), true)) {
     $category = 'image';
 }
 
@@ -142,6 +142,7 @@ $subfolders = array();
 $mediaList = array();
 $imageCount = 0;
 $videoCount = 0;
+$musicCount = 0;
 
 if ($targetDir && is_dir($targetDir)) {
     $items = @scandir($targetDir);
@@ -175,6 +176,9 @@ if ($targetDir && is_dir($targetDir)) {
                 } elseif (in_array($ext, $videoExtensions, true)) {
                     $type = 'video';
                     $videoCount++;
+                } elseif (in_array($ext, $audioExtensions, true)) {
+                    $type = 'music';
+                    $musicCount++;
                 }
 
                 if ($type !== null) {
@@ -236,7 +240,7 @@ usort($subfolders, function($a, $b) {
 
             <button class="mobile-toggle" onclick="toggleTopMenu()" aria-label="Menu">🌸</button>
 
-            <!-- Nav Tabs: Photos & Videos only (No All Media) -->
+            <!-- Nav Tabs: Photos, Videos & Music -->
             <nav class="top-nav" id="topNav">
                 <a href="index.php?cat=image<?php echo ($currentFolder !== '' ? '&folder=' . urlencode(str_replace('\\', '/', $currentFolder)) : ''); ?>" 
                    class="nav-item <?php if ($category === 'image') echo 'active'; ?>">
@@ -245,6 +249,10 @@ usort($subfolders, function($a, $b) {
                 <a href="index.php?cat=video<?php echo ($currentFolder !== '' ? '&folder=' . urlencode(str_replace('\\', '/', $currentFolder)) : ''); ?>" 
                    class="nav-item <?php if ($category === 'video') echo 'active'; ?>">
                     🎀 Videos <span class="nav-badge"><?php echo $videoCount; ?></span>
+                </a>
+                <a href="index.php?cat=music<?php echo ($currentFolder !== '' ? '&folder=' . urlencode(str_replace('\\', '/', $currentFolder)) : ''); ?>" 
+                   class="nav-item <?php if ($category === 'music') echo 'active'; ?>">
+                    🎵 Music <span class="nav-badge"><?php echo $musicCount; ?></span>
                 </a>
             </nav>
 
@@ -330,7 +338,11 @@ usort($subfolders, function($a, $b) {
         <!-- Media Files Section -->
         <div class="media-section">
             <h3 class="section-title">
-                <?php echo $category === 'image' ? '🌸 Photos in this folder' : '🎀 Videos in this folder'; ?>
+                <?php 
+                if ($category === 'image') echo '🌸 Photos in this folder';
+                elseif ($category === 'video') echo '🎀 Videos in this folder';
+                else echo '🎵 Music in this folder';
+                ?>
                 <span class="section-count">(<?php echo count($mediaList); ?>)</span>
             </h3>
 
@@ -340,7 +352,11 @@ usort($subfolders, function($a, $b) {
                         <div class="empty-icon-wrap">
                             <span class="empty-icon">🥺🌸</span>
                         </div>
-                        <h3>No <?php echo $category === 'image' ? 'Photos' : 'Videos'; ?> in This Folder</h3>
+                        <h3>No <?php 
+                            if ($category === 'image') echo 'Photos';
+                            elseif ($category === 'video') echo 'Videos';
+                            else echo 'Music Tracks';
+                        ?> in This Folder</h3>
                         <p class="empty-desc">
                             <?php if (!empty($subfolders)): ?>
                                 Check out the subfolders above, or switch tabs to explore! 🎀✨
@@ -364,16 +380,29 @@ usort($subfolders, function($a, $b) {
 
                             <div class="media-thumb-container">
                                 <span class="badge-type">
-                                    <?php echo $item['type'] === 'image' ? '🌸 PHOTO' : '🎀 VIDEO'; ?>
+                                    <?php 
+                                    if ($item['type'] === 'image') echo '🌸 PHOTO';
+                                    elseif ($item['type'] === 'video') echo '🎀 VIDEO';
+                                    else echo '🎵 MUSIC';
+                                    ?>
                                 </span>
 
                                 <?php if ($item['type'] === 'image'): ?>
                                     <img src="media_server.php?file=<?php echo rawurlencode($item['relPath']); ?>" loading="lazy" alt="<?php echo htmlspecialchars($item['name'], ENT_QUOTES); ?>">
-                                <?php else: ?>
+                                <?php elseif ($item['type'] === 'video'): ?>
                                     <canvas class="thumb-canvas"></canvas>
                                     <span class="video-play-overlay">
                                         <span class="play-symbol">▶</span>
                                     </span>
+                                <?php else: ?>
+                                    <div class="audio-card-visual">
+                                        <div class="vinyl-record">
+                                            <div class="vinyl-center">🎵</div>
+                                        </div>
+                                        <div class="audio-bars">
+                                            <span></span><span></span><span></span><span></span><span></span>
+                                        </div>
+                                    </div>
                                 <?php endif; ?>
                             </div>
 

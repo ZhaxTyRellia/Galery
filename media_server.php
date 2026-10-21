@@ -53,7 +53,7 @@ if (!$targetReal || !is_file($targetReal) || strpos($targetReal, $baseReal) !== 
 
 // Extension whitelist check
 $ext = strtolower(pathinfo($targetReal, PATHINFO_EXTENSION));
-$allowedExts = array_merge($imageExtensions, $videoExtensions);
+$allowedExts = array_merge($imageExtensions, $videoExtensions, $audioExtensions);
 if (!in_array($ext, $allowedExts, true)) {
     http_response_code(403);
     echo "File type not permitted.";
@@ -96,7 +96,14 @@ function resolveMimeType($filePath, $ext)
         'ogg'  => 'video/ogg',
         'mkv'  => 'video/x-matroska',
         'avi'  => 'video/x-msvideo',
-        'mov'  => 'video/quicktime'
+        'mov'  => 'video/quicktime',
+        'mp3'  => 'audio/mpeg',
+        'wav'  => 'audio/wav',
+        'ogg'  => 'audio/ogg',
+        'm4a'  => 'audio/mp4',
+        'flac' => 'audio/flac',
+        'aac'  => 'audio/aac',
+        'wma'  => 'audio/x-ms-wma'
     );
 
     if (isset($map[$ext])) {
