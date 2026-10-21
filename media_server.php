@@ -1,52 +1,87 @@
 <?php
-set_time_limit(0); // Allow long streaming for large files
+/**
+ * Media Server - Secure media streaming & caching handler.
+ */
+set_time_limit(0);
 require_once __DIR__ . '/config.php';
-$sessionLifetime = 43200;
-ini_set('session.gc_maxlifetime', $sessionLifetime);
-session_set_cookie_params($sessionLifetime);
-session_start();
 
-// Check if user is logged in and session not expired (12 hours)
-if (
-    !isset($_SESSION['authenticated']) || $_SESSION['authenticated'] !== true ||
-    !isset($_SESSION['logged_in_time']) || (time() - $_SESSION['logged_in_time'] > $sessionLifetime)
-) {
-    http_response_code(403);
-    echo "Access denied. Please log in first.";
+// Authentication check if password is set in config.php
+if (!empty($galleryPassword)) {
+    $sessionLifetime = 43200; // 12 hours
+    ini_set('session.gc_maxlifetime', $sessionLifetime);
+    session_set_cookie_params($sessionLifetime);
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+
+    if (
+        !isset($_SESSION['authenticated']) || $_SESSION['authenticated'] !== true ||
+        !isset($_SESSION['logged_in_time']) || (time() - $_SESSION['logged_in_time'] > $sessionLifetime)
+    ) {
+        http_response_code(403);
+        echo "Access denied. Please log in first.";
+        exit;
+    }
+}
+
+// Ensure base media directory exists
+$baseReal = realpath($mediaDirectory);
+if (!$baseReal || !is_dir($baseReal)) {
+    http_response_code(500);
+    echo "Media directory is not configured or not accessible.";
     exit;
 }
 
-$baseDir = $mediaDirectory;
-
 $file = isset($_GET['file']) ? $_GET['file'] : '';
+if ($file === '') {
+    http_response_code(400);
+    echo "No file specified.";
+    exit;
+}
 
-$file = str_replace(array('../', '..\\'), '', $file);
-$fullPath = rtrim($baseDir, '\\/') . DIRECTORY_SEPARATOR . ltrim($file, '\\/');
+// Normalize path separators and prevent traversal
+$file = str_replace(array('/', '\\'), DIRECTORY_SEPARATOR, $file);
+$candidate = $baseReal . DIRECTORY_SEPARATOR . ltrim($file, DIRECTORY_SEPARATOR);
+$targetReal = realpath($candidate);
 
-if (empty($file) || !file_exists($fullPath) || !is_file($fullPath)) {
+// Strict check: must exist, be a regular file, and reside inside base directory
+if (!$targetReal || !is_file($targetReal) || strpos($targetReal, $baseReal) !== 0) {
     http_response_code(404);
     echo "File not found.";
     exit;
 }
 
-$size = filesize($fullPath);
+// Extension whitelist check
+$ext = strtolower(pathinfo($targetReal, PATHINFO_EXTENSION));
+$allowedExts = array_merge($imageExtensions, $videoExtensions);
+if (!in_array($ext, $allowedExts, true)) {
+    http_response_code(403);
+    echo "File type not permitted.";
+    exit;
+}
+
+$size  = filesize($targetReal);
+$mtime = filemtime($targetReal);
+$etag  = '"' . md5($targetReal . '-' . $size . '-' . $mtime) . '"';
+
+// Browser Caching: 304 Not Modified
+header("Cache-Control: public, max-age=86400, stale-while-revalidate=604800");
+header("ETag: $etag");
+header("Last-Modified: " . gmdate("D, d M Y H:i:s", $mtime) . " GMT");
+
+if (
+    (isset($_SERVER['HTTP_IF_NONE_MATCH']) && trim($_SERVER['HTTP_IF_NONE_MATCH']) === $etag) ||
+    (isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) && @strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']) >= $mtime)
+) {
+    http_response_code(304);
+    exit;
+}
 
 /**
- * Resolve the MIME type for the requested file.
- *
- * Uses the fileinfo extension when available and falls back to an
- * extension map so streaming never breaks on hosts without fileinfo.
+ * Determine MIME type safely
  */
-function resolveMimeType($filePath)
+function resolveMimeType($filePath, $ext)
 {
-    if (function_exists('mime_content_type')) {
-        $detected = @mime_content_type($filePath);
-        if ($detected !== false && $detected !== '') {
-            return $detected;
-        }
-    }
-
-    $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
     $map = array(
         'jpg'  => 'image/jpeg',
         'jpeg' => 'image/jpeg',
@@ -54,24 +89,36 @@ function resolveMimeType($filePath)
         'gif'  => 'image/gif',
         'webp' => 'image/webp',
         'bmp'  => 'image/bmp',
+        'svg'  => 'image/svg+xml',
         'mp4'  => 'video/mp4',
         'webm' => 'video/webm',
         'ogv'  => 'video/ogg',
         'ogg'  => 'video/ogg',
         'mkv'  => 'video/x-matroska',
         'avi'  => 'video/x-msvideo',
-        'mov'  => 'video/quicktime',
+        'mov'  => 'video/quicktime'
     );
 
-    return isset($map[$ext]) ? $map[$ext] : 'application/octet-stream';
+    if (isset($map[$ext])) {
+        return $map[$ext];
+    }
+
+    if (function_exists('mime_content_type')) {
+        $detected = @mime_content_type($filePath);
+        if ($detected !== false && $detected !== '') {
+            return $detected;
+        }
+    }
+
+    return 'application/octet-stream';
 }
 
-$mimeType = resolveMimeType($fullPath);
+$mimeType = resolveMimeType($targetReal, $ext);
 
-$fp = @fopen($fullPath, 'rb');
+$fp = @fopen($targetReal, 'rb');
 if (!$fp) {
     http_response_code(500);
-    echo "Failed to read file.";
+    echo "Failed to open file.";
     exit;
 }
 
@@ -79,17 +126,19 @@ if (ob_get_level()) {
     ob_end_clean();
 }
 
+// Support HTTP Range requests (crucial for video scrubbing & streaming)
 if (isset($_SERVER['HTTP_RANGE'])) {
     $range = $_SERVER['HTTP_RANGE'];
     $range = str_replace('bytes=', '', $range);
-    $range = explode('-', $range);
+    $rangeParts = explode('-', $range);
 
-    $start = intval($range[0]);
-    $end = (isset($range[1]) && is_numeric($range[1])) ? intval($range[1]) : ($size - 1);
+    $start = intval($rangeParts[0]);
+    $end   = (isset($rangeParts[1]) && is_numeric($rangeParts[1])) ? intval($rangeParts[1]) : ($size - 1);
 
     if ($start > $end || $start >= $size) {
         header('HTTP/1.1 416 Requested Range Not Satisfiable');
         header("Content-Range: bytes */$size");
+        fclose($fp);
         exit;
     }
 
@@ -103,12 +152,13 @@ if (isset($_SERVER['HTTP_RANGE'])) {
 
     fseek($fp, $start);
 
-    $bufferSize = 1048576;
+    $bufferSize = 1048576; // 1MB buffer
     $bytesToRead = $length;
 
     while ($bytesToRead > 0 && !feof($fp)) {
         $readSize = ($bytesToRead > $bufferSize) ? $bufferSize : $bytesToRead;
         $data = fread($fp, $readSize);
+        if ($data === false) break;
         echo $data;
         flush();
         $bytesToRead -= strlen($data);
@@ -120,7 +170,9 @@ if (isset($_SERVER['HTTP_RANGE'])) {
 
     $bufferSize = 1048576;
     while (!feof($fp)) {
-        echo fread($fp, $bufferSize);
+        $data = fread($fp, $bufferSize);
+        if ($data === false) break;
+        echo $data;
         flush();
     }
 }

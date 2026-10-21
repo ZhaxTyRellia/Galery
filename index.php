@@ -1,135 +1,160 @@
 <?php
-// Set session duration to 12 hours (43200 seconds)
+/**
+ * Galery Hub - Gothic Dark Media Gallery
+ */
+
+require_once __DIR__ . '/config.php';
+
+// Session lifetime: 12 hours (43200s)
 $sessionLifetime = 43200;
+$isAuthEnabled = !empty($galleryPassword);
 
-ini_set('session.gc_maxlifetime', $sessionLifetime);
-session_set_cookie_params($sessionLifetime);
-session_start();
+if ($isAuthEnabled) {
+    ini_set('session.gc_maxlifetime', $sessionLifetime);
+    session_set_cookie_params($sessionLifetime);
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
 
-// Gallery access password
-$galleryPassword = 'xxx';
-
-// Check and manage session expiry (12 hours)
-if (isset($_SESSION['logged_in_time'])) {
-    if (time() - $_SESSION['logged_in_time'] > $sessionLifetime) {
+    // Check session expiration
+    if (isset($_SESSION['logged_in_time']) && (time() - $_SESSION['logged_in_time'] > $sessionLifetime)) {
         session_unset();
         session_destroy();
-        header("Location: " . $_SERVER['PHP_SELF']);
+        header("Location: index.php");
+        exit;
+    }
+
+    // Handle logout action
+    if (isset($_GET['action']) && $_GET['action'] === 'logout') {
+        session_unset();
+        session_destroy();
+        header("Location: index.php");
+        exit;
+    }
+
+    // Handle login submission
+    $loginError = '';
+    if (isset($_POST['password'])) {
+        if ($_POST['password'] === $galleryPassword) {
+            $_SESSION['authenticated'] = true;
+            $_SESSION['logged_in_time'] = time();
+            header("Location: index.php");
+            exit;
+        } else {
+            $loginError = 'Password salah, silakan coba lagi.';
+        }
+    }
+
+    // Show login form if not authenticated
+    if (!isset($_SESSION['authenticated']) || $_SESSION['authenticated'] !== true) {
+?>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Galery Hub</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text x=%2250%25%22 y=%2250%25%22 font-size=%2280%22 text-anchor=%22middle%22 dominant-baseline=%22central%22 fill=%22%238b0000%22>☠</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=UnifrakturMaguntia&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="login-body">
+    <div class="login-wrapper">
+        <div class="login-card">
+            <div class="login-brand-icon">☠</div>
+            <h2>Galery Hub</h2>
+            <p>Masukkan kata sandi untuk mengakses galeri media</p>
+
+            <?php if (!empty($loginError)): ?>
+                <div class="error-msg"><?php echo htmlspecialchars($loginError); ?></div>
+            <?php endif; ?>
+
+            <form method="POST" action="">
+                <input type="password" name="password" class="login-input" placeholder="Kata sandi..." required autofocus>
+                <button type="submit" class="login-btn">Masuk 🗝️</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
+<?php
         exit;
     }
 }
 
-// Process login form submission
-$loginError = '';
-if (isset($_POST['password'])) {
-    if ($_POST['password'] === $galleryPassword) {
-        $_SESSION['authenticated'] = true;
-        $_SESSION['logged_in_time'] = time(); // Save login timestamp
-    } else {
-        $loginError = 'Incorrect password, please try again!';
-    }
-}
-
-// Logout process
-if (isset($_GET['action']) && $_GET['action'] === 'logout') {
-    session_unset();
-    session_destroy();
-    header("Location: " . $_SERVER['PHP_SELF']);
-    exit;
-}
-
-// Show login page if not authenticated
-if (!isset($_SESSION['authenticated']) || $_SESSION['authenticated'] !== true) {
-?>
-    <!DOCTYPE html>
-    <html lang="en">
-
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Login - Expression Hub</title>
-        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text x=%2250%25%22 y=%2250%25%22 font-size=%2280%22 text-anchor=%22middle%22 dominant-baseline=%22central%22>☠</text></svg>">
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=UnifrakturMaguntia&display=swap" rel="stylesheet">
-        <link rel="stylesheet" href="style.css">
-    </head>
-
-    <body>
-        <div class="login-wrapper">
-            <div class="login-card">
-                <h2>Expression Hub 🔒</h2>
-                <p>Enter password to access gallery</p>
-
-                <?php if (!empty($loginError)): ?>
-                    <div class="error-msg"><?php echo $loginError; ?></div>
-                <?php endif; ?>
-
-                <form method="POST" action="">
-                    <input type="password" name="password" class="login-input" placeholder="Password..." required autofocus>
-                    <button type="submit" class="login-btn">Login ✨</button>
-                </form>
-            </div>
-        </div>
-    </body>
-
-    </html>
-<?php
-    exit;
-}
-
-// Main media scanning logic
-require_once __DIR__ . '/config.php';
-
+// Media scanning logic
 $category = isset($_GET['cat']) ? $_GET['cat'] : 'all';
+if (!in_array($category, array('all', 'image', 'video'), true)) {
+    $category = 'all';
+}
+
 $mediaList = array();
+$totalCount = 0;
+$imageCount = 0;
+$videoCount = 0;
 
 /**
- * Recursively scan directory
+ * Format bytes to readable string
  */
-function scanDirectoryRecursively(
-    string $dir,
-    string $baseDir,
-    array $imageExts,
-    array $videoExts,
-    string $category,
-    array &$result
-) {
-    if (!file_exists($dir) || !is_dir($dir)) return;
+function formatBytes($bytes, $precision = 1) {
+    $units = array('B', 'KB', 'MB', 'GB', 'TB');
+    $bytes = max($bytes, 0);
+    $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
+    $pow = min($pow, count($units) - 1);
+    $bytes /= (1 << (10 * $pow));
+    return round($bytes, $precision) . ' ' . $units[$pow];
+}
 
-    $items = scandir($dir);
+/**
+ * Recursively scans directory for media files
+ */
+function scanDirectoryRecursively($dir, $baseDir, $imageExts, $videoExts, $category, &$result, &$imgCount, &$vidCount)
+{
+    if (!file_exists($dir) || !is_dir($dir)) return;
+    $items = @scandir($dir);
+    if ($items === false) return;
+
     foreach ($items as $item) {
         if ($item === '.' || $item === '..') continue;
-
         $fullPath = $dir . DIRECTORY_SEPARATOR . $item;
 
         if (is_dir($fullPath)) {
-            scanDirectoryRecursively($fullPath, $baseDir, $imageExts, $videoExts, $category, $result);
+            scanDirectoryRecursively($fullPath, $baseDir, $imageExts, $videoExts, $category, $result, $imgCount, $vidCount);
         } else {
             $ext = strtolower(pathinfo($item, PATHINFO_EXTENSION));
             $type = null;
 
-            if (in_array($ext, $imageExts)) {
+            if (in_array($ext, $imageExts, true)) {
                 $type = 'image';
-            } elseif (in_array($ext, $videoExts)) {
+                $imgCount++;
+            } elseif (in_array($ext, $videoExts, true)) {
                 $type = 'video';
+                $vidCount++;
             }
 
             if ($type !== null) {
                 if ($category === 'all' || $category === $type) {
-                    $relativePath = ltrim(str_replace($baseDir, '', $fullPath), '\\/');
-                    $folderName = dirname($relativePath);
-                    if ($folderName === '.') $folderName = 'Root';
+                    $relPath = ltrim(substr($fullPath, strlen($baseDir)), '\\/');
+                    $folderName = dirname($relPath);
+                    if ($folderName === '.' || $folderName === '') {
+                        $folderName = 'Root';
+                    }
 
-                    $fileTime = filemtime($fullPath);
+                    $fileTime = @filemtime($fullPath) ?: 0;
+                    $fileSize = @filesize($fullPath) ?: 0;
 
                     $result[] = array(
-                        'name'     => $item,
-                        'relPath'  => $relativePath,
-                        'folder'   => $folderName,
-                        'type'     => $type,
-                        'ext'      => $ext,
-                        'mtime'    => $fileTime
+                        'name'          => $item,
+                        'relPath'       => $relPath,
+                        'folder'        => $folderName,
+                        'type'          => $type,
+                        'ext'           => $ext,
+                        'size'          => $fileSize,
+                        'sizeFormatted' => formatBytes($fileSize),
+                        'mtime'         => $fileTime,
+                        'dateFormatted' => $fileTime ? date('d M Y', $fileTime) : '-'
                     );
                 }
             }
@@ -137,25 +162,36 @@ function scanDirectoryRecursively(
     }
 }
 
-scanDirectoryRecursively($mediaDirectory, $mediaDirectory, $imageExtensions, $videoExtensions, $category, $mediaList);
+if (file_exists($mediaDirectory) && is_dir($mediaDirectory)) {
+    scanDirectoryRecursively(
+        $mediaDirectory,
+        $mediaDirectory,
+        $imageExtensions,
+        $videoExtensions,
+        $category,
+        $mediaList,
+        $imageCount,
+        $videoCount
+    );
+    $totalCount = $imageCount + $videoCount;
+}
 ?>
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Galery - Expression Hub</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text x=%2250%25%22 y=%2250%25%22 font-size=%2280%22 text-anchor=%22middle%22 dominant-baseline=%22central%22>☠</text></svg>">
+    <title>Galery Hub - Expression Media</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text x=%2250%25%22 y=%2250%25%22 font-size=%2280%22 text-anchor=%22middle%22 dominant-baseline=%22central%22 fill=%22%238b0000%22>☠</text></svg>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=UnifrakturMaguntia&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <script src="gallery.js" defer></script>
 </head>
-
 <body>
 
-    <!-- Top Bar -->
+    <!-- Top Bar Navigation -->
     <header class="top-bar">
         <div class="top-bar-inner">
             <div class="brand">
@@ -163,247 +199,106 @@ scanDirectoryRecursively($mediaDirectory, $mediaDirectory, $imageExtensions, $vi
                 <span class="brand-name">Galery Hub</span>
             </div>
 
-            <button class="mobile-toggle" onclick="toggleTopMenu()">☰</button>
+            <button class="mobile-toggle" onclick="toggleTopMenu()" aria-label="Menu">☰</button>
 
             <nav class="top-nav" id="topNav">
-                <a href="index.php?cat=all" class="nav-item <?php if ($category === 'all') echo 'active'; ?>">All Media</a>
-                <a href="index.php?cat=image" class="nav-item <?php if ($category === 'image') echo 'active'; ?>">Images</a>
-                <a href="index.php?cat=video" class="nav-item <?php if ($category === 'video') echo 'active'; ?>">Video</a>
+                <a href="index.php?cat=all" class="nav-item <?php if ($category === 'all') echo 'active'; ?>">
+                    Semua <span class="nav-badge"><?php echo $totalCount; ?></span>
+                </a>
+                <a href="index.php?cat=image" class="nav-item <?php if ($category === 'image') echo 'active'; ?>">
+                    Foto <span class="nav-badge"><?php echo $imageCount; ?></span>
+                </a>
+                <a href="index.php?cat=video" class="nav-item <?php if ($category === 'video') echo 'active'; ?>">
+                    Video <span class="nav-badge"><?php echo $videoCount; ?></span>
+                </a>
             </nav>
 
             <div class="top-controls" id="topControls">
                 <div class="search-box">
-                    <span class="search-icon">?</span>
-                    <input type="text" id="searchInput" onkeyup="filterAndSortMedia()" placeholder="Search media or folder...">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" id="searchInput" oninput="filterAndSortMedia()" placeholder="Cari nama atau folder...">
                 </div>
 
                 <div class="sort-select-wrapper">
                     <select id="sortSelect" class="sort-select" onchange="filterAndSortMedia()">
-                        <option value="date-desc">Newest</option>
-                        <option value="date-asc">Oldest</option>
-                        <option value="name-asc">A → Z</option>
-                        <option value="name-desc">Z → A</option>
+                        <option value="date-desc">Terbaru</option>
+                        <option value="date-asc">Terlama</option>
+                        <option value="name-asc">Nama (A → Z)</option>
+                        <option value="name-desc">Nama (Z → A)</option>
+                        <option value="size-desc">Ukuran (Besar → Kecil)</option>
+                        <option value="size-asc">Ukuran (Kecil → Besar)</option>
                     </select>
                 </div>
 
                 <div class="item-counter-badge">
-                    <strong><?php echo count($mediaList); ?></strong> items
+                    <strong id="itemCount"><?php echo count($mediaList); ?></strong> item
                 </div>
 
-                <a href="index.php?action=logout" class="nav-item nav-item-logout">Logout</a>
+                <?php if ($isAuthEnabled): ?>
+                    <a href="index.php?action=logout" class="nav-item nav-item-logout" title="Keluar dari sesi">Keluar</a>
+                <?php endif; ?>
             </div>
         </div>
     </header>
 
+    <!-- Main Content Area -->
     <main class="main-content">
-        <!-- Gallery Grid -->
         <div class="gallery-grid" id="galleryGrid">
-                <?php if (empty($mediaList)): ?>
-                    <p class="empty-media-msg">
-                        (⁠•⁠–⁠•⁠) Media file not found. (⁠•⁠–⁠•⁠)<code><?php echo htmlspecialchars($mediaDirectory); ?></code>
-                    </p>
-                <?php else: ?>
-                    <?php foreach ($mediaList as $index => $item): ?>
-                        <div class="media-card"
-                            data-index="<?php echo $index; ?>"
-                            data-title="<?php echo strtolower(htmlspecialchars($item['name'])); ?>"
-                            data-folder="<?php echo strtolower(htmlspecialchars($item['folder'])); ?>"
-                            data-mtime="<?php echo $item['mtime']; ?>"
-                            data-relpath="<?php echo urlencode($item['relPath']); ?>"
-                            data-type="<?php echo $item['type']; ?>"
-                            onclick="openPlayerByIndex(<?php echo $index; ?>)">
+            <?php if (empty($mediaList)): ?>
+                <div class="empty-media-msg">
+                    <p class="empty-icon">☠</p>
+                    <h3>Media Tidak Ditemukan</h3>
+                    <p class="empty-path">Direktori: <code><?php echo htmlspecialchars($mediaDirectory); ?></code></p>
+                    <p class="empty-desc">Pastikan folder ada dan berisi file gambar atau video yang didukung.</p>
+                </div>
+            <?php else: ?>
+                <?php foreach ($mediaList as $index => $item): ?>
+                    <div class="media-card"
+                        data-index="<?php echo $index; ?>"
+                        data-name="<?php echo htmlspecialchars($item['name'], ENT_QUOTES); ?>"
+                        data-title="<?php echo htmlspecialchars(strtolower($item['name']), ENT_QUOTES); ?>"
+                        data-folder="<?php echo htmlspecialchars(strtolower($item['folder']), ENT_QUOTES); ?>"
+                        data-mtime="<?php echo $item['mtime']; ?>"
+                        data-size="<?php echo $item['size']; ?>"
+                        data-relpath="<?php echo urlencode($item['relPath']); ?>"
+                        data-type="<?php echo $item['type']; ?>"
+                        onclick="openPlayerByIndex(<?php echo $index; ?>)">
 
-                            <div class="media-thumb-container">
-                                <span class="badge-type">
-                                    <?php echo $item['type'] === 'image' ? '🖼️ IMG' : '🎥 VID'; ?>
+                        <div class="media-thumb-container">
+                            <span class="badge-type">
+                                <?php echo $item['type'] === 'image' ? '🖼️ FOTO' : '🎥 VIDEO'; ?>
+                            </span>
+
+                            <?php if ($item['type'] === 'image'): ?>
+                                <img src="media_server.php?file=<?php echo urlencode($item['relPath']); ?>" loading="lazy" alt="<?php echo htmlspecialchars($item['name'], ENT_QUOTES); ?>">
+                            <?php else: ?>
+                                <canvas class="thumb-canvas"></canvas>
+                                <span class="video-play-overlay">▶</span>
+                            <?php endif; ?>
+                        </div>
+
+                        <div class="media-info">
+                            <p class="media-title" title="<?php echo htmlspecialchars($item['name']); ?>">
+                                <?php echo htmlspecialchars($item['name']); ?>
+                            </p>
+                            <div class="media-meta-row">
+                                <span class="media-folder" title="Folder: <?php echo htmlspecialchars($item['folder']); ?>">
+                                    📁 <?php echo htmlspecialchars($item['folder']); ?>
                                 </span>
-
-                                <?php if ($item['type'] === 'image'): ?>
-                                    <img src="media_server.php?file=<?php echo urlencode($item['relPath']); ?>" loading="lazy" alt="Preview">
-                                <?php else: ?>
-                                    <canvas id="thumb-canvas-<?php echo $index; ?>"></canvas>
-                                    <video id="thumb-video-<?php echo $index; ?>"
-                                        src="media_server.php?file=<?php echo urlencode($item['relPath']); ?>#t=2.0"
-                                        preload="metadata"
-                                        style="display:none;"
-                                        onloadeddata="generateVideoThumbnail(<?php echo $index; ?>)">
-                                    </video>
-                                <?php endif; ?>
-                            </div>
-
-                            <div class="media-info">
-                                <p class="media-title" title="<?php echo htmlspecialchars($item['name']); ?>">
-                                    <?php echo htmlspecialchars($item['name']); ?>
-                                </p>
-                                <p class="media-folder" title="Folder: <?php echo htmlspecialchars($item['folder']); ?>">
-                                    📂 <?php echo htmlspecialchars($item['folder']); ?>
-                                </p>
+                                <span class="media-size"><?php echo $item['sizeFormatted']; ?></span>
                             </div>
                         </div>
-                    <?php endforeach; ?>
-                <?php endif; ?>
-            </div>
-        </main>
+                    </div>
+                <?php endforeach; ?>
+            <?php endif; ?>
+        </div>
+    </main>
 
     <!-- Modal Lightbox / Player -->
     <div id="mediaModal" class="modal">
-        <span class="close-btn" onclick="closePlayer()">&times;</span>
+        <button class="close-btn" onclick="closePlayer()" aria-label="Tutup">&times;</button>
         <div class="modal-content-wrapper" id="modalContainer"></div>
     </div>
 
-    <script>
-        let currentVisibleCards = [];
-        let currentPlayingIndex = -1;
-        let isLoopSingle = false;
-
-        // Top bar mobile menu toggle
-        function toggleTopMenu() {
-            const nav = document.getElementById('topNav');
-            const controls = document.getElementById('topControls');
-            nav.classList.toggle('open');
-            controls.classList.toggle('open');
-        }
-
-        // Search & Sort Filter
-        function filterAndSortMedia() {
-            const query = document.getElementById('searchInput').value.toLowerCase();
-            const sortOption = document.getElementById('sortSelect').value;
-            const grid = document.getElementById('galleryGrid');
-            const cards = Array.from(grid.querySelectorAll('.media-card'));
-
-            cards.forEach(card => {
-                const title = card.getAttribute('data-title');
-                const folder = card.getAttribute('data-folder');
-                if (title.includes(query) || folder.includes(query)) {
-                    card.style.display = 'flex';
-                } else {
-                    card.style.display = 'none';
-                }
-            });
-
-            cards.sort((a, b) => {
-                const nameA = a.getAttribute('data-title');
-                const nameB = b.getAttribute('data-title');
-                const timeA = parseInt(a.getAttribute('data-mtime'));
-                const timeB = parseInt(b.getAttribute('data-mtime'));
-
-                if (sortOption === 'date-desc') return timeB - timeA;
-                if (sortOption === 'date-asc') return timeA - timeB;
-                if (sortOption === 'name-asc') return nameA.localeCompare(nameB);
-                if (sortOption === 'name-desc') return nameB.localeCompare(nameA);
-            });
-
-            cards.forEach(card => grid.appendChild(card));
-            updateVisibleCards();
-        }
-
-        function updateVisibleCards() {
-            const grid = document.getElementById('galleryGrid');
-            currentVisibleCards = Array.from(grid.querySelectorAll('.media-card')).filter(card => card.style.display !== 'none');
-        }
-
-        document.addEventListener("DOMContentLoaded", function() {
-            filterAndSortMedia();
-        });
-
-        // Player Logic
-        function openPlayerByIndex(originalIndex) {
-            updateVisibleCards();
-            const cardIndex = currentVisibleCards.findIndex(card => card.getAttribute('data-index') == originalIndex);
-            if (cardIndex !== -1) {
-                playMediaAtVisibleIndex(cardIndex);
-            }
-        }
-
-        function playMediaAtVisibleIndex(index) {
-            if (index < 0 || index >= currentVisibleCards.length) return;
-            currentPlayingIndex = index;
-
-            const card = currentVisibleCards[index];
-            const relPath = card.getAttribute('data-relpath');
-            const type = card.getAttribute('data-type');
-
-            const modal = document.getElementById('mediaModal');
-            const container = document.getElementById('modalContainer');
-            const mediaUrl = 'media_server.php?file=' + relPath;
-
-            if (type === 'image') {
-                container.innerHTML = `
-                    <img src="${mediaUrl}" class="modal-content">
-                    <div class="player-controls">
-                        <button class="player-btn" onclick="playPrev()">⏮ Prev</button>
-                        <button class="player-btn" onclick="playNext()">Next ⏭</button>
-                    </div>`;
-            } else if (type === 'video') {
-                container.innerHTML = `
-                    <video id="activeVideo" controls autoplay class="modal-content">
-                        <source src="${mediaUrl}">
-                        Browser does not support video playback.
-                    </video>
-                    <div class="player-controls">
-                        <button class="player-btn" onclick="playPrev()">⏮ Prev</button>
-                        <button id="loopBtn" class="player-btn ${isLoopSingle ? 'active' : ''}" onclick="toggleLoop()">🔁 Loop Single</button>
-                        <button class="player-btn" onclick="playNext()">Next ⏭</button>
-                    </div>`;
-
-                const videoElement = document.getElementById('activeVideo');
-                videoElement.onended = function() {
-                    if (isLoopSingle) {
-                        videoElement.currentTime = 0;
-                        videoElement.play();
-                    } else {
-                        playNext();
-                    }
-                };
-            }
-
-            modal.style.display = 'flex';
-        }
-
-        function toggleLoop() {
-            isLoopSingle = !isLoopSingle;
-            const btn = document.getElementById('loopBtn');
-            if (btn) {
-                btn.classList.toggle('active', isLoopSingle);
-            }
-        }
-
-        function playNext() {
-            if (currentVisibleCards.length === 0) return;
-            let nextIndex = (currentPlayingIndex + 1) % currentVisibleCards.length;
-            playMediaAtVisibleIndex(nextIndex);
-        }
-
-        function playPrev() {
-            if (currentVisibleCards.length === 0) return;
-            let prevIndex = (currentPlayingIndex - 1 + currentVisibleCards.length) % currentVisibleCards.length;
-            playMediaAtVisibleIndex(prevIndex);
-        }
-
-        function closePlayer() {
-            const modal = document.getElementById('mediaModal');
-            const container = document.getElementById('modalContainer');
-            modal.style.display = 'none';
-            container.innerHTML = '';
-        }
-
-        function generateVideoThumbnail(index) {
-            const video = document.getElementById('thumb-video-' + index);
-            const canvas = document.getElementById('thumb-canvas-' + index);
-            if (!video || !canvas) return;
-
-            const ctx = canvas.getContext('2d');
-            canvas.width = video.videoWidth || 320;
-            canvas.height = video.videoHeight || 180;
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        }
-
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') closePlayer();
-            if (e.key === 'ArrowRight') playNext();
-            if (e.key === 'ArrowLeft') playPrev();
-        });
-    </script>
 </body>
-
 </html>
