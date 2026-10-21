@@ -1,5 +1,5 @@
 /**
- * Kawaii Gallery Hub - Ultra Cute & Feminine Theme 🌸✨
+ * Gallery Hub - Ultra Cute & Feminine Theme 🌸✨
  * Rich with pastel gradients, bouncy animations, and candy glassmorphism!
  */
 
@@ -60,7 +60,7 @@ body {
 }
 
 /* Background Canvas for Floating Cute Petals & Sparkles */
-#kawaiiCanvas {
+#floatingCanvas {
   position: fixed;
   top: 0;
   left: 0;
@@ -70,7 +70,7 @@ body {
   z-index: 1;
 }
 
-/* Custom Kawaii Scrollbar */
+/* Custom Cute Scrollbar */
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
@@ -87,7 +87,7 @@ body {
   background: linear-gradient(180deg, #ff758c 0%, #c471ed 100%);
 }
 
-/* ================= LOGIN FORM (KAWAII STYLE) ================= */
+/* ================= LOGIN FORM (PASTEL STYLE) ================= */
 .login-body {
   display: flex;
   align-items: center;
@@ -580,7 +580,7 @@ body {
   font-weight: 600;
 }
 
-/* ================= KAWAII MEDIA CARD ================= */
+/* ================= PASTEL MEDIA CARD ================= */
 .media-card {
   background: var(--card-bg);
   backdrop-filter: blur(14px);

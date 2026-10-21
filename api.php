@@ -1,6 +1,6 @@
 <?php
 /**
- * Kawaii Gallery - File Management API (Rename & Delete)
+ * Gallery Hub - File Management API (Rename & Delete)
  */
 header('Content-Type: application/json; charset=utf-8');
 

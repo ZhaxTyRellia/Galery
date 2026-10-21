@@ -1,5 +1,5 @@
 /**
- * Kawaii Gallery Hub - Interactive Media Player, Folder Navigation,
+ * Gallery Hub - Interactive Media Player, Folder Navigation,
  * File Management (Rename & Delete), and Cute Animations 🌸✨
  */
 
@@ -576,9 +576,9 @@ document.addEventListener('click', function(e) {
     }
 });
 
-/* ================= KAWAII FLOATING CANVAS ANIMATION ================= */
-function initKawaiiCanvas() {
-    const canvas = document.getElementById('kawaiiCanvas');
+/* ================= FLOATING PARTICLES CANVAS ANIMATION ================= */
+function initFloatingCanvas() {
+    const canvas = document.getElementById('floatingCanvas');
     if (!canvas) return;
 
     const ctx = canvas.getContext('2d');
@@ -674,6 +674,6 @@ function initClickSparkles() {
 document.addEventListener('DOMContentLoaded', function() {
     filterAndSortMedia();
     setupVideoThumbnailObserver();
-    initKawaiiCanvas();
+    initFloatingCanvas();
     initClickSparkles();
 });

@@ -1,6 +1,6 @@
 <?php
 /**
- * Kawaii Gallery Hub - Cute, Feminine, Aesthetic Media Gallery 🌸✨
+ * Gallery Hub - Cute, Feminine, Aesthetic Media Gallery 🌸✨
  * Folder-based navigation, file rename & delete, English UI.
  */
 
@@ -54,7 +54,7 @@ if ($isAuthEnabled) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sweet Login ~ Kawaii Gallery 🎀</title>
+    <title>Sweet Login ~ Gallery Hub 🎀</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text x=%2250%25%22 y=%2250%25%22 font-size=%2280%22 text-anchor=%22middle%22 dominant-baseline=%22central%22>🎀</text></svg>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -62,11 +62,11 @@ if ($isAuthEnabled) {
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="login-body">
-    <canvas id="kawaiiCanvas"></canvas>
+    <canvas id="floatingCanvas"></canvas>
     <div class="login-wrapper">
         <div class="login-card">
             <div class="login-brand-icon">🎀</div>
-            <h2>Kawaii Gallery</h2>
+            <h2>Gallery Hub</h2>
             <p>Enter the password to explore this lovely gallery~ ✨🌸</p>
 
             <?php if (!empty($loginError)): ?>
@@ -212,7 +212,7 @@ usort($subfolders, function($a, $b) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kawaii Gallery Hub 🌸✨</title>
+    <title>Gallery Hub 🌸✨</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text x=%2250%25%22 y=%2250%25%22 font-size=%2280%22 text-anchor=%22middle%22 dominant-baseline=%22central%22>🎀</text></svg>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -223,14 +223,14 @@ usort($subfolders, function($a, $b) {
 <body>
 
     <!-- Floating Cute Background Animation Canvas -->
-    <canvas id="kawaiiCanvas"></canvas>
+    <canvas id="floatingCanvas"></canvas>
 
     <!-- Top Bar Navigation -->
     <header class="top-bar">
         <div class="top-bar-inner">
             <a href="index.php?cat=<?php echo $category; ?>" class="brand" title="Home">
                 <span class="brand-icon">🎀</span>
-                <span class="brand-name">Kawaii Gallery</span>
+                <span class="brand-name">Gallery Hub</span>
                 <span class="brand-sparkle">✨</span>
             </a>
 
