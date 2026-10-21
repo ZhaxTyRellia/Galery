@@ -1,10 +1,17 @@
 /**
- * Kawaii Gallery Hub - Interactive Media Player & Cute Animations 🌸✨
+ * Kawaii Gallery Hub - Interactive Media Player, Folder Navigation,
+ * File Management (Rename & Delete), and Cute Animations 🌸✨
  */
 
 let currentVisibleCards = [];
 let currentPlayingIndex = -1;
 let isLoopSingle = false;
+
+// Pending file action state
+let pendingRenamePath = '';
+let pendingRenameExt = '';
+let pendingDeletePath = '';
+let pendingDeleteCard = null;
 
 // Mobile Navigation Toggle
 function toggleTopMenu() {
@@ -111,7 +118,7 @@ function playMediaAtVisibleIndex(index) {
     if (!modal || !container) return;
 
     const mediaUrl = 'media_server.php?file=' + relPath;
-    const itemPosition = (currentPlayingIndex + 1) + ' dari ' + currentVisibleCards.length;
+    const itemPosition = (currentPlayingIndex + 1) + ' of ' + currentVisibleCards.length;
 
     let mediaHtml = '';
     if (type === 'image') {
@@ -125,24 +132,29 @@ function playMediaAtVisibleIndex(index) {
             <div class="modal-media-wrapper">
                 <video id="activeVideo" controls autoplay playsinline class="modal-content modal-video">
                     <source src="${mediaUrl}">
-                    Browser Anda belum mendukung pemutaran video ini yaa~ 🥺
+                    Your browser does not support playing this video format yet~ 🥺
                 </video>
             </div>
         `;
     }
 
+    // Decode relPath for API calls
+    const rawPath = decodeURIComponent(relPath);
+
     container.innerHTML = `
         ${mediaHtml}
         <div class="player-controls">
             <div class="player-info">
-                <span class="player-title" title="${escapeHtml(title)}">🌸 ${escapeHtml(title)}</span>
+                <span class="player-title" id="modalActiveTitle" title="${escapeHtml(title)}">🌸 ${escapeHtml(title)}</span>
                 <span class="player-meta">${folder ? '📁 ' + escapeHtml(folder) + ' &bull; ' : ''}🎀 ${itemPosition}</span>
             </div>
             <div class="player-buttons">
-                <button class="player-btn" onclick="playPrev()" title="Sebelumnya (Panah Kiri)">⏮ Prev</button>
-                ${type === 'video' ? `<button id="loopBtn" class="player-btn ${isLoopSingle ? 'active' : ''}" onclick="toggleLoop()" title="Ulang video ini">🔁 Loop ${isLoopSingle ? 'Aktif 💖' : 'Manis'}</button>` : ''}
-                <a href="${mediaUrl}" target="_blank" class="player-btn" title="Buka penuh di tab baru">↗ Buka Penuh ✨</a>
-                <button class="player-btn" onclick="playNext()" title="Selanjutnya (Panah Kanan)">Next ⏭</button>
+                <button class="player-btn" onclick="playPrev()" title="Previous (Left Arrow)">⏮ Prev</button>
+                ${type === 'video' ? `<button id="loopBtn" class="player-btn ${isLoopSingle ? 'active' : ''}" onclick="toggleLoop()" title="Loop this video">🔁 Loop ${isLoopSingle ? 'Active 💖' : 'Single'}</button>` : ''}
+                <button class="player-btn" onclick="triggerRenameFromModal()" title="Rename this file">✏️ Rename</button>
+                <button class="player-btn player-btn-danger" onclick="triggerDeleteFromModal()" title="Delete this file">🗑️ Delete</button>
+                <a href="${mediaUrl}" target="_blank" id="modalFullLink" class="player-btn" title="Open full media in new tab">↗ Full ✨</a>
+                <button class="player-btn" onclick="playNext()" title="Next (Right Arrow)">Next ⏭</button>
             </div>
         </div>
     `;
@@ -164,12 +176,28 @@ function playMediaAtVisibleIndex(index) {
     modal.style.display = 'flex';
 }
 
+function triggerRenameFromModal() {
+    if (currentPlayingIndex < 0 || currentPlayingIndex >= currentVisibleCards.length) return;
+    const card = currentVisibleCards[currentPlayingIndex];
+    const rawPath = decodeURIComponent(card.getAttribute('data-relpath'));
+    const name = card.getAttribute('data-name');
+    triggerRename(rawPath, name);
+}
+
+function triggerDeleteFromModal() {
+    if (currentPlayingIndex < 0 || currentPlayingIndex >= currentVisibleCards.length) return;
+    const card = currentVisibleCards[currentPlayingIndex];
+    const rawPath = decodeURIComponent(card.getAttribute('data-relpath'));
+    const name = card.getAttribute('data-name');
+    triggerDelete(rawPath, name);
+}
+
 function toggleLoop() {
     isLoopSingle = !isLoopSingle;
     const btn = document.getElementById('loopBtn');
     if (btn) {
         btn.classList.toggle('active', isLoopSingle);
-        btn.innerHTML = `🔁 Loop ${isLoopSingle ? 'Aktif 💖' : 'Manis'}`;
+        btn.innerHTML = `🔁 Loop ${isLoopSingle ? 'Active 💖' : 'Single'}`;
     }
 }
 
@@ -190,7 +218,6 @@ function closePlayer() {
     const container = document.getElementById('modalContainer');
     if (!modal) return;
 
-    // Pause any playing video to stop sound immediately
     const video = modal.querySelector('video');
     if (video) {
         video.pause();
@@ -202,7 +229,7 @@ function closePlayer() {
     currentPlayingIndex = -1;
 }
 
-// Efficient Lazy Video Thumbnail Generator using IntersectionObserver
+// Lazy Video Thumbnail Generator
 function setupVideoThumbnailObserver() {
     const videoCards = document.querySelectorAll('.media-card[data-type="video"]');
     if (!('IntersectionObserver' in window)) {
@@ -286,10 +313,231 @@ function escapeHtml(str) {
         .replace(/'/g, '&#039;');
 }
 
+/* ================= FILE MANAGEMENT (RENAME & DELETE) ================= */
+
+// Open Rename Dialog
+function triggerRename(relPath, currentName) {
+    pendingRenamePath = relPath;
+
+    // Split base name and extension
+    const lastDotIndex = currentName.lastIndexOf('.');
+    let base = currentName;
+    let ext = '';
+    if (lastDotIndex > 0) {
+        base = currentName.substring(0, lastDotIndex);
+        ext = currentName.substring(lastDotIndex + 1);
+    }
+    pendingRenameExt = ext;
+
+    const dialog = document.getElementById('renameDialog');
+    const preview = document.getElementById('renameCurrentFile');
+    const input = document.getElementById('renameInput');
+    const extPreview = document.getElementById('renameExtPreview');
+
+    if (preview) preview.textContent = currentName;
+    if (input) {
+        input.value = base;
+        setTimeout(() => {
+            input.focus();
+            input.select();
+        }, 100);
+    }
+    if (extPreview) extPreview.textContent = ext ? '.' + ext : '';
+
+    if (dialog) dialog.classList.add('active');
+}
+
+function closeRenameDialog() {
+    const dialog = document.getElementById('renameDialog');
+    if (dialog) dialog.classList.remove('active');
+    pendingRenamePath = '';
+    pendingRenameExt = '';
+}
+
+// Submit Rename
+function submitRename(e) {
+    if (e) e.preventDefault();
+
+    const input = document.getElementById('renameInput');
+    const rawVal = input ? input.value.trim() : '';
+
+    if (!rawVal) {
+        showToast('Please enter a valid file name! 🥺', 'error');
+        return;
+    }
+
+    const payload = new URLSearchParams();
+    payload.append('path', pendingRenamePath);
+    payload.append('newName', rawVal + (pendingRenameExt ? '.' + pendingRenameExt : ''));
+
+    fetch('api.php?action=rename', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: payload.toString()
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            showToast(`File renamed to "${data.newName}"! ✨`, 'success');
+
+            // Find the card by old relpath
+            const encodedOld = encodeURIComponent(pendingRenamePath);
+            const card = document.querySelector(`.media-card[data-relpath="${encodedOld}"]`) 
+                      || document.querySelector(`.media-card[data-relpath="${encodeURIComponent(pendingRenamePath.replace(/\\/g, '/'))}"]`);
+
+            if (card) {
+                card.setAttribute('data-name', data.newName);
+                card.setAttribute('data-title', data.newName.toLowerCase());
+                card.setAttribute('data-relpath', encodeURIComponent(data.newRelPath));
+
+                const titleEl = card.querySelector('.media-title');
+                if (titleEl) {
+                    titleEl.textContent = data.newName;
+                    titleEl.title = data.newName;
+                }
+
+                // Update Rename button onclick parameter
+                const renameBtn = card.querySelector('.btn-rename');
+                if (renameBtn) {
+                    renameBtn.setAttribute('onclick', `event.stopPropagation(); triggerRename('${escapeHtml(data.newRelPath)}', '${escapeHtml(data.newName)}')`);
+                }
+                const deleteBtn = card.querySelector('.btn-delete');
+                if (deleteBtn) {
+                    deleteBtn.setAttribute('onclick', `event.stopPropagation(); triggerDelete('${escapeHtml(data.newRelPath)}', '${escapeHtml(data.newName)}')`);
+                }
+            }
+
+            // Update modal if open on this file
+            const modalTitle = document.getElementById('modalActiveTitle');
+            if (modalTitle && currentPlayingIndex !== -1) {
+                modalTitle.textContent = '🌸 ' + data.newName;
+                modalTitle.title = data.newName;
+                const modalFullLink = document.getElementById('modalFullLink');
+                if (modalFullLink) {
+                    modalFullLink.href = 'media_server.php?file=' + encodeURIComponent(data.newRelPath);
+                }
+            }
+
+            closeRenameDialog();
+            filterAndSortMedia();
+        } else {
+            showToast(data.error || 'Failed to rename file~ 🥺', 'error');
+        }
+    })
+    .catch(err => {
+        showToast('Network error while renaming file.', 'error');
+    });
+}
+
+// Open Delete Dialog
+function triggerDelete(relPath, currentName) {
+    pendingDeletePath = relPath;
+
+    // Locate card
+    const encoded = encodeURIComponent(relPath);
+    pendingDeleteCard = document.querySelector(`.media-card[data-relpath="${encoded}"]`)
+                     || document.querySelector(`.media-card[data-relpath="${encodeURIComponent(relPath.replace(/\\/g, '/'))}"]`);
+
+    const dialog = document.getElementById('deleteDialog');
+    const preview = document.getElementById('deleteCurrentFile');
+    if (preview) preview.textContent = currentName;
+    if (dialog) dialog.classList.add('active');
+}
+
+function closeDeleteDialog() {
+    const dialog = document.getElementById('deleteDialog');
+    if (dialog) dialog.classList.remove('active');
+    pendingDeletePath = '';
+    pendingDeleteCard = null;
+}
+
+// Submit Delete
+function submitDelete() {
+    if (!pendingDeletePath) return;
+
+    const payload = new URLSearchParams();
+    payload.append('path', pendingDeletePath);
+
+    fetch('api.php?action=delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: payload.toString()
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            showToast('File deleted successfully! 🗑️', 'success');
+
+            // If modal is currently playing this item, advance or close
+            const modal = document.getElementById('mediaModal');
+            const isModalOpen = modal && modal.style.display === 'flex';
+
+            if (pendingDeleteCard) {
+                pendingDeleteCard.style.transition = 'all 0.35s ease';
+                pendingDeleteCard.style.transform = 'scale(0.7)';
+                pendingDeleteCard.style.opacity = '0';
+                setTimeout(() => {
+                    if (pendingDeleteCard && pendingDeleteCard.parentNode) {
+                        pendingDeleteCard.parentNode.removeChild(pendingDeleteCard);
+                    }
+                    filterAndSortMedia();
+
+                    if (isModalOpen) {
+                        if (currentVisibleCards.length > 0) {
+                            playNext();
+                        } else {
+                            closePlayer();
+                        }
+                    }
+                }, 350);
+            }
+
+            closeDeleteDialog();
+        } else {
+            showToast(data.error || 'Failed to delete file~ 🥺', 'error');
+        }
+    })
+    .catch(err => {
+        showToast('Network error while deleting file.', 'error');
+    });
+}
+
+// Toast notification helper
+function showToast(message, type = 'success') {
+    const container = document.getElementById('toastContainer');
+    if (!container) return;
+
+    const toast = document.createElement('div');
+    toast.className = `cute-toast toast-${type}`;
+    toast.innerHTML = `
+        <span class="toast-icon">${type === 'success' ? '💖' : '⚠️'}</span>
+        <span class="toast-text">${escapeHtml(message)}</span>
+    `;
+
+    container.appendChild(toast);
+    setTimeout(() => {
+        toast.classList.add('toast-exit');
+        setTimeout(() => toast.remove(), 400);
+    }, 3200);
+}
+
 // Keyboard shortcuts
 document.addEventListener('keydown', function(e) {
     const modal = document.getElementById('mediaModal');
     const isModalOpen = modal && modal.style.display === 'flex';
+
+    const renameDialog = document.getElementById('renameDialog');
+    const deleteDialog = document.getElementById('deleteDialog');
+
+    // Dialog shortcuts
+    if (renameDialog && renameDialog.classList.contains('active')) {
+        if (e.key === 'Escape') closeRenameDialog();
+        return;
+    }
+    if (deleteDialog && deleteDialog.classList.contains('active')) {
+        if (e.key === 'Escape') closeDeleteDialog();
+        return;
+    }
 
     if (e.key === 'Escape') {
         closePlayer();
@@ -317,6 +565,14 @@ document.addEventListener('click', function(e) {
     const modal = document.getElementById('mediaModal');
     if (e.target === modal) {
         closePlayer();
+    }
+    const renameDialog = document.getElementById('renameDialog');
+    if (e.target === renameDialog) {
+        closeRenameDialog();
+    }
+    const deleteDialog = document.getElementById('deleteDialog');
+    if (e.target === deleteDialog) {
+        closeDeleteDialog();
     }
 });
 
@@ -360,7 +616,6 @@ function initKawaiiCanvas() {
             p.x += Math.sin(p.y * 0.01) * 0.5 + p.speedX;
             p.rotation += p.rotationSpeed;
 
-            // Reset when reaching top
             if (p.y < -40) {
                 p.y = height + 40;
                 p.x = Math.random() * width;
@@ -390,7 +645,8 @@ function initClickSparkles() {
     const sparkles = ['✨', '💖', '🌸', '🍬', '⭐'];
 
     document.addEventListener('click', function(e) {
-        // Do not trigger on button/links directly if it impairs clicking
+        if (e.target.closest('button, input, select, a')) return;
+
         const count = 4;
         for (let i = 0; i < count; i++) {
             const span = document.createElement('span');

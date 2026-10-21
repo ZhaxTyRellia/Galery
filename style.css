@@ -1015,3 +1015,478 @@ body {
     font-size: 1.3rem;
   }
 }
+
+
+/* ================= FOLDER NAVIGATION & BREADCRUMBS ================= */
+.folder-header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(14px);
+  padding: 12px 20px;
+  border-radius: var(--radius-pill);
+  border: 2px solid var(--card-border);
+  box-shadow: var(--shadow-candy);
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.breadcrumbs-trail {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: "Fredoka", sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  flex-wrap: wrap;
+}
+
+.crumb-icon {
+  font-size: 1.2rem;
+}
+
+.crumb-separator {
+  color: var(--pink-soft);
+  font-weight: 700;
+}
+
+.crumb-item {
+  color: var(--text-dark);
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.crumb-link {
+  color: var(--pink-primary);
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 240, 245, 0.7);
+}
+
+.crumb-link:hover {
+  background: var(--pink-primary);
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(255, 117, 140, 0.3);
+}
+
+.crumb-current {
+  color: var(--pink-deep);
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 117, 140, 0.15);
+}
+
+.back-folder-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--grad-berry);
+  color: #fff;
+  text-decoration: none;
+  font-family: "Fredoka", sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 8px 18px;
+  border-radius: var(--radius-pill);
+  box-shadow: 0 4px 14px rgba(255, 83, 118, 0.3);
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.back-folder-btn:hover {
+  transform: translateY(-2px) scale(1.04);
+  box-shadow: 0 6px 18px rgba(255, 83, 118, 0.45);
+}
+
+/* ================= SUBFOLDERS SECTION ================= */
+.subfolders-section {
+  margin-bottom: 30px;
+}
+
+.section-title {
+  font-family: "Fredoka", sans-serif;
+  font-size: 1.25rem;
+  color: var(--text-dark);
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.section-count {
+  font-size: 0.95rem;
+  color: var(--pink-deep);
+}
+
+.folders-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 16px;
+}
+
+.folder-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(14px);
+  border: 2px solid var(--card-border);
+  border-radius: var(--radius-md);
+  padding: 14px 18px;
+  text-decoration: none;
+  color: var(--text-dark);
+  box-shadow: var(--shadow-candy);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.folder-card:hover {
+  transform: translateY(-5px) scale(1.02);
+  border-color: var(--pink-primary);
+  box-shadow: var(--shadow-hover);
+  background: #ffffff;
+}
+
+.folder-icon-wrap {
+  font-size: 2rem;
+  transition: transform 0.3s ease;
+}
+
+.folder-card:hover .folder-icon-wrap {
+  transform: scale(1.2) rotate(6deg);
+}
+
+.folder-details {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  gap: 2px;
+  flex: 1;
+}
+
+.folder-card-name {
+  font-family: "Fredoka", sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text-dark);
+}
+
+.folder-card:hover .folder-card-name {
+  color: var(--pink-deep);
+}
+
+.folder-card-badge {
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--pink-deep);
+  background: rgba(255, 117, 140, 0.12);
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  width: fit-content;
+}
+
+.folder-arrow {
+  color: var(--pink-soft);
+  font-size: 1rem;
+  transition: transform 0.25s ease;
+}
+
+.folder-card:hover .folder-arrow {
+  color: var(--pink-deep);
+  transform: translateX(4px);
+}
+
+/* Card action buttons (Rename & Delete) */
+.card-action-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(255, 182, 193, 0.5);
+}
+
+.action-btn {
+  flex: 1;
+  padding: 5px 8px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--card-border);
+  font-family: "Fredoka", sans-serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: rgba(255, 240, 245, 0.8);
+  color: var(--text-dark);
+  transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.btn-rename:hover {
+  background: #ffffff;
+  border-color: var(--pink-primary);
+  color: var(--pink-deep);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(255, 117, 140, 0.25);
+}
+
+.btn-delete {
+  color: #ff5376;
+  background: rgba(255, 230, 235, 0.7);
+  border-color: rgba(255, 83, 118, 0.3);
+}
+
+.btn-delete:hover {
+  background: #ff5376;
+  color: #fff;
+  border-color: transparent;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 83, 118, 0.35);
+}
+
+.player-btn-danger {
+  color: #ff5376;
+  background: rgba(255, 225, 230, 0.9);
+  border-color: rgba(255, 83, 118, 0.4);
+}
+
+.player-btn-danger:hover {
+  background: #ff5376;
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 6px 16px rgba(255, 83, 118, 0.4);
+}
+
+/* ================= CUTE DIALOG MODALS ================= */
+.cute-dialog-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(45, 25, 40, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  z-index: 3000;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.cute-dialog-overlay.active {
+  display: flex;
+  animation: fadeInModal 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.cute-dialog-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border: 3px solid rgba(255, 182, 193, 0.8);
+  border-radius: 26px;
+  padding: 36px 30px;
+  width: 100%;
+  max-width: 440px;
+  text-align: center;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3), 0 0 25px rgba(255, 182, 193, 0.5);
+  animation: popInBounce 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.dialog-icon {
+  font-size: 2.8rem;
+  margin-bottom: 8px;
+  animation: cuteWiggle 3s ease infinite;
+}
+
+.dialog-title {
+  font-family: "Fredoka", sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin-bottom: 6px;
+}
+
+.dialog-subtitle {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}
+
+.dialog-filename-preview {
+  background: rgba(255, 240, 245, 0.8);
+  border: 1.5px solid var(--pink-soft);
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  font-family: "Fredoka", sans-serif;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--pink-deep);
+  margin-bottom: 18px;
+  word-break: break-all;
+}
+
+.highlight-delete {
+  background: rgba(255, 225, 230, 0.85);
+  border-color: rgba(255, 83, 118, 0.5);
+  color: #d81159;
+}
+
+.delete-warning {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #ff5376;
+  margin-bottom: 20px;
+}
+
+.rename-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 22px;
+}
+
+.dialog-input {
+  flex: 1;
+  padding: 12px 18px;
+  border-radius: var(--radius-pill);
+  border: 2px solid var(--pink-soft);
+  background: #ffffff;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-dark);
+  outline: none;
+  transition: all 0.25s ease;
+}
+
+.dialog-input:focus {
+  border-color: var(--pink-primary);
+  box-shadow: 0 0 0 4px rgba(255, 117, 140, 0.22);
+}
+
+.ext-badge {
+  font-family: "Fredoka", sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--lavender);
+  background: rgba(177, 133, 219, 0.15);
+  padding: 10px 14px;
+  border-radius: var(--radius-pill);
+  white-space: nowrap;
+}
+
+.dialog-button-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: center;
+}
+
+.dialog-btn {
+  flex: 1;
+  padding: 12px 18px;
+  border-radius: var(--radius-pill);
+  font-family: "Fredoka", sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.btn-secondary {
+  background: rgba(255, 240, 245, 0.9);
+  color: var(--text-dark);
+  border: 2px solid var(--pink-soft);
+}
+
+.btn-secondary:hover {
+  background: #ffffff;
+  border-color: var(--pink-primary);
+  transform: translateY(-2px);
+}
+
+.btn-primary {
+  background: var(--grad-berry);
+  color: #fff;
+  box-shadow: 0 6px 18px rgba(255, 117, 140, 0.35);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 10px 24px rgba(255, 117, 140, 0.5);
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, #ff5376 0%, #e63946 100%);
+  color: #fff;
+  box-shadow: 0 6px 18px rgba(255, 83, 118, 0.4);
+}
+
+.btn-danger:hover {
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 10px 24px rgba(255, 83, 118, 0.55);
+}
+
+/* ================= TOAST NOTIFICATIONS ================= */
+.toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 99999;
+  pointer-events: none;
+}
+
+.cute-toast {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(14px);
+  border: 2px solid var(--pink-soft);
+  border-radius: var(--radius-pill);
+  padding: 12px 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18), 0 0 15px rgba(255, 182, 193, 0.4);
+  font-family: "Fredoka", sans-serif;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--text-dark);
+  pointer-events: auto;
+  animation: toastEnter 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: all 0.35s ease;
+}
+
+.cute-toast.toast-exit {
+  opacity: 0;
+  transform: translateY(20px) scale(0.9);
+}
+
+.toast-icon {
+  font-size: 1.2rem;
+}
+
+.toast-error {
+  border-color: #ff5376;
+  background: #fff3f5;
+  color: #d81159;
+}
+
+@keyframes toastEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(30px) scale(0.85);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
