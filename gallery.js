@@ -229,25 +229,52 @@ function generateCardThumbnail(card) {
 
     const tempVideo = document.createElement('video');
     tempVideo.preload = 'metadata';
-    tempVideo.src = 'media_server.php?file=' + videoUrl + '#t=1.5';
+    tempVideo.src = 'media_server.php?file=' + videoUrl;
     tempVideo.muted = true;
     tempVideo.playsInline = true;
 
-    tempVideo.onloadeddata = function() {
-        const ctx = canvas.getContext('2d');
-        canvas.width = tempVideo.videoWidth || 320;
-        canvas.height = tempVideo.videoHeight || 180;
-        ctx.drawImage(tempVideo, 0, 0, canvas.width, canvas.height);
-        canvas.dataset.rendered = 'true';
-        // Clean up temporary video resources
+    let hasDrawn = false;
+    const draw = () => {
+        if (hasDrawn) return;
+        hasDrawn = true;
+        try {
+            const ctx = canvas.getContext('2d');
+            canvas.width = tempVideo.videoWidth || 320;
+            canvas.height = tempVideo.videoHeight || 180;
+            ctx.drawImage(tempVideo, 0, 0, canvas.width, canvas.height);
+            canvas.dataset.rendered = 'true';
+        } catch (e) {
+            canvas.dataset.rendered = 'failed';
+        }
         tempVideo.src = '';
-        tempVideo.load();
+        tempVideo.remove();
+    };
+
+    tempVideo.onloadeddata = function() {
+        // Seek slightly forward to avoid black intro frame
+        if (tempVideo.duration && tempVideo.duration > 1) {
+            tempVideo.currentTime = Math.min(1.5, tempVideo.duration / 2);
+        } else {
+            draw();
+        }
+    };
+
+    tempVideo.onseeked = function() {
+        draw();
     };
 
     tempVideo.onerror = function() {
-        // Leave placeholder canvas/icon
         canvas.dataset.rendered = 'failed';
+        tempVideo.remove();
     };
+
+    // Timeout safety fallback so hanging requests don't linger
+    setTimeout(() => {
+        if (!hasDrawn) {
+            tempVideo.src = '';
+            tempVideo.remove();
+        }
+    }, 8000);
 }
 
 // Utility: HTML escaping

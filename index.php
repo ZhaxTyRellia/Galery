@@ -260,7 +260,7 @@ if (file_exists($mediaDirectory) && is_dir($mediaDirectory)) {
                         data-folder="<?php echo htmlspecialchars(strtolower($item['folder']), ENT_QUOTES); ?>"
                         data-mtime="<?php echo $item['mtime']; ?>"
                         data-size="<?php echo $item['size']; ?>"
-                        data-relpath="<?php echo urlencode($item['relPath']); ?>"
+                        data-relpath="<?php echo rawurlencode($item['relPath']); ?>"
                         data-type="<?php echo $item['type']; ?>"
                         onclick="openPlayerByIndex(<?php echo $index; ?>)">
 
@@ -270,7 +270,7 @@ if (file_exists($mediaDirectory) && is_dir($mediaDirectory)) {
                             </span>
 
                             <?php if ($item['type'] === 'image'): ?>
-                                <img src="media_server.php?file=<?php echo urlencode($item['relPath']); ?>" loading="lazy" alt="<?php echo htmlspecialchars($item['name'], ENT_QUOTES); ?>">
+                                <img src="media_server.php?file=<?php echo rawurlencode($item['relPath']); ?>" loading="lazy" alt="<?php echo htmlspecialchars($item['name'], ENT_QUOTES); ?>">
                             <?php else: ?>
                                 <canvas class="thumb-canvas"></canvas>
                                 <span class="video-play-overlay">▶</span>
