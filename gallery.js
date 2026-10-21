@@ -1,5 +1,5 @@
 /**
- * Gallery Hub - Interactive Media Player & Controls
+ * Kawaii Gallery Hub - Interactive Media Player & Cute Animations 🌸✨
  */
 
 let currentVisibleCards = [];
@@ -111,7 +111,7 @@ function playMediaAtVisibleIndex(index) {
     if (!modal || !container) return;
 
     const mediaUrl = 'media_server.php?file=' + relPath;
-    const itemPosition = (currentPlayingIndex + 1) + ' / ' + currentVisibleCards.length;
+    const itemPosition = (currentPlayingIndex + 1) + ' dari ' + currentVisibleCards.length;
 
     let mediaHtml = '';
     if (type === 'image') {
@@ -125,7 +125,7 @@ function playMediaAtVisibleIndex(index) {
             <div class="modal-media-wrapper">
                 <video id="activeVideo" controls autoplay playsinline class="modal-content modal-video">
                     <source src="${mediaUrl}">
-                    Browser Anda tidak mendukung pemutar video ini.
+                    Browser Anda belum mendukung pemutaran video ini yaa~ 🥺
                 </video>
             </div>
         `;
@@ -135,14 +135,14 @@ function playMediaAtVisibleIndex(index) {
         ${mediaHtml}
         <div class="player-controls">
             <div class="player-info">
-                <span class="player-title" title="${escapeHtml(title)}">${escapeHtml(title)}</span>
-                <span class="player-meta">${folder ? '📁 ' + escapeHtml(folder) + ' &bull; ' : ''}${itemPosition}</span>
+                <span class="player-title" title="${escapeHtml(title)}">🌸 ${escapeHtml(title)}</span>
+                <span class="player-meta">${folder ? '📁 ' + escapeHtml(folder) + ' &bull; ' : ''}🎀 ${itemPosition}</span>
             </div>
             <div class="player-buttons">
-                <button class="player-btn" onclick="playPrev()" title="Previous (Left Arrow)">⏮ Prev</button>
-                ${type === 'video' ? `<button id="loopBtn" class="player-btn ${isLoopSingle ? 'active' : ''}" onclick="toggleLoop()" title="Loop single video">🔁 Loop</button>` : ''}
-                <a href="${mediaUrl}" target="_blank" class="player-btn" title="Open full media in new tab">↗ Full</a>
-                <button class="player-btn" onclick="playNext()" title="Next (Right Arrow)">Next ⏭</button>
+                <button class="player-btn" onclick="playPrev()" title="Sebelumnya (Panah Kiri)">⏮ Prev</button>
+                ${type === 'video' ? `<button id="loopBtn" class="player-btn ${isLoopSingle ? 'active' : ''}" onclick="toggleLoop()" title="Ulang video ini">🔁 Loop ${isLoopSingle ? 'Aktif 💖' : 'Manis'}</button>` : ''}
+                <a href="${mediaUrl}" target="_blank" class="player-btn" title="Buka penuh di tab baru">↗ Buka Penuh ✨</a>
+                <button class="player-btn" onclick="playNext()" title="Selanjutnya (Panah Kanan)">Next ⏭</button>
             </div>
         </div>
     `;
@@ -169,6 +169,7 @@ function toggleLoop() {
     const btn = document.getElementById('loopBtn');
     if (btn) {
         btn.classList.toggle('active', isLoopSingle);
+        btn.innerHTML = `🔁 Loop ${isLoopSingle ? 'Aktif 💖' : 'Manis'}`;
     }
 }
 
@@ -205,7 +206,6 @@ function closePlayer() {
 function setupVideoThumbnailObserver() {
     const videoCards = document.querySelectorAll('.media-card[data-type="video"]');
     if (!('IntersectionObserver' in window)) {
-        // Fallback for older browsers
         videoCards.forEach(card => generateCardThumbnail(card));
         return;
     }
@@ -251,7 +251,6 @@ function generateCardThumbnail(card) {
     };
 
     tempVideo.onloadeddata = function() {
-        // Seek slightly forward to avoid black intro frame
         if (tempVideo.duration && tempVideo.duration > 1) {
             tempVideo.currentTime = Math.min(1.5, tempVideo.duration / 2);
         } else {
@@ -268,7 +267,6 @@ function generateCardThumbnail(card) {
         tempVideo.remove();
     };
 
-    // Timeout safety fallback so hanging requests don't linger
     setTimeout(() => {
         if (!hasDrawn) {
             tempVideo.src = '';
@@ -322,8 +320,104 @@ document.addEventListener('click', function(e) {
     }
 });
 
+/* ================= KAWAII FLOATING CANVAS ANIMATION ================= */
+function initKawaiiCanvas() {
+    const canvas = document.getElementById('kawaiiCanvas');
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    let width = canvas.width = window.innerWidth;
+    let height = canvas.height = window.innerHeight;
+
+    window.addEventListener('resize', () => {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+    });
+
+    const particles = [];
+    const particleCount = 28;
+    const emojis = ['🌸', '✨', '💖', '🫧', '🎀', '🍬'];
+
+    for (let i = 0; i < particleCount; i++) {
+        particles.push({
+            x: Math.random() * width,
+            y: Math.random() * height,
+            size: 14 + Math.random() * 16,
+            speedY: 0.3 + Math.random() * 0.8,
+            speedX: (Math.random() - 0.5) * 0.6,
+            rotation: Math.random() * 360,
+            rotationSpeed: (Math.random() - 0.5) * 1.5,
+            opacity: 0.25 + Math.random() * 0.45,
+            emoji: emojis[Math.floor(Math.random() * emojis.length)]
+        });
+    }
+
+    function animate() {
+        ctx.clearRect(0, 0, width, height);
+
+        particles.forEach(p => {
+            p.y -= p.speedY;
+            p.x += Math.sin(p.y * 0.01) * 0.5 + p.speedX;
+            p.rotation += p.rotationSpeed;
+
+            // Reset when reaching top
+            if (p.y < -40) {
+                p.y = height + 40;
+                p.x = Math.random() * width;
+            }
+            if (p.x < -40) p.x = width + 40;
+            if (p.x > width + 40) p.x = -40;
+
+            ctx.save();
+            ctx.translate(p.x, p.y);
+            ctx.rotate((p.rotation * Math.PI) / 180);
+            ctx.globalAlpha = p.opacity;
+            ctx.font = `${p.size}px sans-serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(p.emoji, 0, 0);
+            ctx.restore();
+        });
+
+        requestAnimationFrame(animate);
+    }
+
+    animate();
+}
+
+/* ================= INTERACTIVE CLICK SPARKLE BURST ================= */
+function initClickSparkles() {
+    const sparkles = ['✨', '💖', '🌸', '🍬', '⭐'];
+
+    document.addEventListener('click', function(e) {
+        // Do not trigger on button/links directly if it impairs clicking
+        const count = 4;
+        for (let i = 0; i < count; i++) {
+            const span = document.createElement('span');
+            span.className = 'sparkle-burst';
+            span.textContent = sparkles[Math.floor(Math.random() * sparkles.length)];
+
+            span.style.left = e.clientX + 'px';
+            span.style.top = e.clientY + 'px';
+
+            const angle = (Math.PI * 2 * i) / count + (Math.random() - 0.5);
+            const dist = 30 + Math.random() * 35;
+            const dx = Math.cos(angle) * dist;
+            const dy = Math.sin(angle) * dist;
+
+            span.style.setProperty('--dx', dx + 'px');
+            span.style.setProperty('--dy', dy + 'px');
+
+            document.body.appendChild(span);
+            setTimeout(() => span.remove(), 900);
+        }
+    });
+}
+
 // Initialize on DOM Ready
 document.addEventListener('DOMContentLoaded', function() {
     filterAndSortMedia();
     setupVideoThumbnailObserver();
+    initKawaiiCanvas();
+    initClickSparkles();
 });

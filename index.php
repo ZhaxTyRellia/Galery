@@ -1,6 +1,6 @@
 <?php
 /**
- * Galery Hub - Gothic Dark Media Gallery
+ * Kawaii Gallery Hub - Cute, Feminine, Aesthetic Media Gallery 🌸✨
  */
 
 require_once __DIR__ . '/config.php';
@@ -41,7 +41,7 @@ if ($isAuthEnabled) {
             header("Location: index.php");
             exit;
         } else {
-            $loginError = 'Password salah, silakan coba lagi.';
+            $loginError = 'Kata sandi kurang tepat nih, coba lagi yaa~ 🥺💖';
         }
     }
 
@@ -53,30 +53,32 @@ if ($isAuthEnabled) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Galery Hub</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text x=%2250%25%22 y=%2250%25%22 font-size=%2280%22 text-anchor=%22middle%22 dominant-baseline=%22central%22 fill=%22%238b0000%22>☠</text></svg>">
+    <title>Login Manis ~ Kawaii Gallery 🎀</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text x=%2250%25%22 y=%2250%25%22 font-size=%2280%22 text-anchor=%22middle%22 dominant-baseline=%22central%22>🎀</text></svg>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=UnifrakturMaguntia&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="login-body">
+    <canvas id="kawaiiCanvas"></canvas>
     <div class="login-wrapper">
         <div class="login-card">
-            <div class="login-brand-icon">☠</div>
-            <h2>Galery Hub</h2>
-            <p>Masukkan kata sandi untuk mengakses galeri media</p>
+            <div class="login-brand-icon">🎀</div>
+            <h2>Kawaii Gallery</h2>
+            <p>Masukkan kata sandi untuk menjelajahi galeri gemas ini yaa~ ✨🌸</p>
 
             <?php if (!empty($loginError)): ?>
                 <div class="error-msg"><?php echo htmlspecialchars($loginError); ?></div>
             <?php endif; ?>
 
             <form method="POST" action="">
-                <input type="password" name="password" class="login-input" placeholder="Kata sandi..." required autofocus>
-                <button type="submit" class="login-btn">Masuk 🗝️</button>
+                <input type="password" name="password" class="login-input" placeholder="Ketik kata sandi di sini... 💖" required autofocus>
+                <button type="submit" class="login-btn">Buka Pintu Manis 🗝️✨</button>
             </form>
         </div>
     </div>
+    <script src="gallery.js" defer></script>
 </body>
 </html>
 <?php
@@ -181,61 +183,67 @@ if (file_exists($mediaDirectory) && is_dir($mediaDirectory)) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Galery Hub - Expression Media</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text x=%2250%25%22 y=%2250%25%22 font-size=%2280%22 text-anchor=%22middle%22 dominant-baseline=%22central%22 fill=%22%238b0000%22>☠</text></svg>">
+    <title>Kawaii Gallery Hub 🌸✨</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text x=%2250%25%22 y=%2250%25%22 font-size=%2280%22 text-anchor=%22middle%22 dominant-baseline=%22central%22>🎀</text></svg>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=UnifrakturMaguntia&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <script src="gallery.js" defer></script>
 </head>
 <body>
 
+    <!-- Floating Cute Background Animation Canvas -->
+    <canvas id="kawaiiCanvas"></canvas>
+
     <!-- Top Bar Navigation -->
     <header class="top-bar">
         <div class="top-bar-inner">
             <div class="brand">
-                <span class="brand-icon">☠</span>
-                <span class="brand-name">Galery Hub</span>
+                <span class="brand-icon">🎀</span>
+                <span class="brand-name">Kawaii Gallery</span>
+                <span class="brand-sparkle">✨</span>
             </div>
 
-            <button class="mobile-toggle" onclick="toggleTopMenu()" aria-label="Menu">☰</button>
+            <button class="mobile-toggle" onclick="toggleTopMenu()" aria-label="Menu">🌸</button>
 
             <nav class="top-nav" id="topNav">
                 <a href="index.php?cat=all" class="nav-item <?php if ($category === 'all') echo 'active'; ?>">
-                    Semua <span class="nav-badge"><?php echo $totalCount; ?></span>
+                    💖 Semua <span class="nav-badge"><?php echo $totalCount; ?></span>
                 </a>
                 <a href="index.php?cat=image" class="nav-item <?php if ($category === 'image') echo 'active'; ?>">
-                    Foto <span class="nav-badge"><?php echo $imageCount; ?></span>
+                    🌸 Foto <span class="nav-badge"><?php echo $imageCount; ?></span>
                 </a>
                 <a href="index.php?cat=video" class="nav-item <?php if ($category === 'video') echo 'active'; ?>">
-                    Video <span class="nav-badge"><?php echo $videoCount; ?></span>
+                    🎀 Video <span class="nav-badge"><?php echo $videoCount; ?></span>
                 </a>
             </nav>
 
             <div class="top-controls" id="topControls">
                 <div class="search-box">
                     <span class="search-icon">🔍</span>
-                    <input type="text" id="searchInput" oninput="filterAndSortMedia()" placeholder="Cari nama atau folder...">
+                    <input type="text" id="searchInput" oninput="filterAndSortMedia()" placeholder="Cari media manis... 🍓">
                 </div>
 
                 <div class="sort-select-wrapper">
+                    <span class="sort-icon">✨</span>
                     <select id="sortSelect" class="sort-select" onchange="filterAndSortMedia()">
-                        <option value="date-desc">Terbaru</option>
-                        <option value="date-asc">Terlama</option>
-                        <option value="name-asc">Nama (A → Z)</option>
-                        <option value="name-desc">Nama (Z → A)</option>
-                        <option value="size-desc">Ukuran (Besar → Kecil)</option>
-                        <option value="size-asc">Ukuran (Kecil → Besar)</option>
+                        <option value="date-desc">🌸 Terbaru</option>
+                        <option value="date-asc">⏳ Terlama</option>
+                        <option value="name-asc">🔤 Nama (A → Z)</option>
+                        <option value="name-desc">🔤 Nama (Z → A)</option>
+                        <option value="size-desc">📦 Terbesar</option>
+                        <option value="size-asc">🎀 Terkecil</option>
                     </select>
                 </div>
 
                 <div class="item-counter-badge">
-                    <strong id="itemCount"><?php echo count($mediaList); ?></strong> item
+                    <span class="counter-heart">💖</span>
+                    <strong id="itemCount"><?php echo count($mediaList); ?></strong> item manis
                 </div>
 
                 <?php if ($isAuthEnabled): ?>
-                    <a href="index.php?action=logout" class="nav-item nav-item-logout" title="Keluar dari sesi">Keluar</a>
+                    <a href="index.php?action=logout" class="nav-item nav-item-logout" title="Keluar sesi">👋 Keluar</a>
                 <?php endif; ?>
             </div>
         </div>
@@ -246,10 +254,12 @@ if (file_exists($mediaDirectory) && is_dir($mediaDirectory)) {
         <div class="gallery-grid" id="galleryGrid">
             <?php if (empty($mediaList)): ?>
                 <div class="empty-media-msg">
-                    <p class="empty-icon">☠</p>
-                    <h3>Media Tidak Ditemukan</h3>
-                    <p class="empty-path">Direktori: <code><?php echo htmlspecialchars($mediaDirectory); ?></code></p>
-                    <p class="empty-desc">Pastikan folder ada dan berisi file gambar atau video yang didukung.</p>
+                    <div class="empty-icon-wrap">
+                        <span class="empty-icon">🥺🌸</span>
+                    </div>
+                    <h3>Media Belum Ditemukan Yaa~</h3>
+                    <p class="empty-path">Folder: <code><?php echo htmlspecialchars($mediaDirectory); ?></code></p>
+                    <p class="empty-desc">Pastikan foldernya sudah ada dan berisi foto atau video lucu yaa! 🎀✨</p>
                 </div>
             <?php else: ?>
                 <?php foreach ($mediaList as $index => $item): ?>
@@ -266,14 +276,16 @@ if (file_exists($mediaDirectory) && is_dir($mediaDirectory)) {
 
                         <div class="media-thumb-container">
                             <span class="badge-type">
-                                <?php echo $item['type'] === 'image' ? '🖼️ FOTO' : '🎥 VIDEO'; ?>
+                                <?php echo $item['type'] === 'image' ? '🌸 FOTO' : '🎀 VIDEO'; ?>
                             </span>
 
                             <?php if ($item['type'] === 'image'): ?>
                                 <img src="media_server.php?file=<?php echo rawurlencode($item['relPath']); ?>" loading="lazy" alt="<?php echo htmlspecialchars($item['name'], ENT_QUOTES); ?>">
                             <?php else: ?>
                                 <canvas class="thumb-canvas"></canvas>
-                                <span class="video-play-overlay">▶</span>
+                                <span class="video-play-overlay">
+                                    <span class="play-symbol">▶</span>
+                                </span>
                             <?php endif; ?>
                         </div>
 
@@ -285,7 +297,7 @@ if (file_exists($mediaDirectory) && is_dir($mediaDirectory)) {
                                 <span class="media-folder" title="Folder: <?php echo htmlspecialchars($item['folder']); ?>">
                                     📁 <?php echo htmlspecialchars($item['folder']); ?>
                                 </span>
-                                <span class="media-size"><?php echo $item['sizeFormatted']; ?></span>
+                                <span class="media-size">🍬 <?php echo $item['sizeFormatted']; ?></span>
                             </div>
                         </div>
                     </div>
@@ -296,7 +308,7 @@ if (file_exists($mediaDirectory) && is_dir($mediaDirectory)) {
 
     <!-- Modal Lightbox / Player -->
     <div id="mediaModal" class="modal">
-        <button class="close-btn" onclick="closePlayer()" aria-label="Tutup">&times;</button>
+        <button class="close-btn" onclick="closePlayer()" aria-label="Tutup">🌸</button>
         <div class="modal-content-wrapper" id="modalContainer"></div>
     </div>
 
