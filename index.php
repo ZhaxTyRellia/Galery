@@ -79,9 +79,7 @@ if (!isset($_SESSION['authenticated']) || $_SESSION['authenticated'] !== true) {
 }
 
 // Main media scanning logic
-$mediaDirectory = 'D:\\Supreme\\.Expression';
-$imageExtensions = array('jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp');
-$videoExtensions = array('mp4', 'webm', 'ogg', 'mkv', 'avi', 'mov');
+require_once __DIR__ . '/config.php';
 
 $category = isset($_GET['cat']) ? $_GET['cat'] : 'all';
 $mediaList = array();
@@ -202,7 +200,7 @@ scanDirectoryRecursively($mediaDirectory, $mediaDirectory, $imageExtensions, $vi
         <div class="gallery-grid" id="galleryGrid">
                 <?php if (empty($mediaList)): ?>
                     <p class="empty-media-msg">
-                        (⁠•⁠–⁠•⁠) Media file not found. (⁠•⁠–⁠•⁠)<!--<code>D:\Supreme\.Expression</code>-->
+                        (⁠•⁠–⁠•⁠) Media file not found. (⁠•⁠–⁠•⁠)<code><?php echo htmlspecialchars($mediaDirectory); ?></code>
                     </p>
                 <?php else: ?>
                     <?php foreach ($mediaList as $index => $item): ?>

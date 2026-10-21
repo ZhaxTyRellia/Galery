@@ -1,4 +1,6 @@
 <?php
+set_time_limit(0); // Allow long streaming for large files
+require_once __DIR__ . '/config.php';
 $sessionLifetime = 43200;
 ini_set('session.gc_maxlifetime', $sessionLifetime);
 session_set_cookie_params($sessionLifetime);
@@ -14,7 +16,7 @@ if (
     exit;
 }
 
-$baseDir = 'E:\\0 - B9\\Assets';
+$baseDir = $mediaDirectory;
 
 $file = isset($_GET['file']) ? $_GET['file'] : '';
 
@@ -28,7 +30,43 @@ if (empty($file) || !file_exists($fullPath) || !is_file($fullPath)) {
 }
 
 $size = filesize($fullPath);
-$mimeType = mime_content_type($fullPath);
+
+/**
+ * Resolve the MIME type for the requested file.
+ *
+ * Uses the fileinfo extension when available and falls back to an
+ * extension map so streaming never breaks on hosts without fileinfo.
+ */
+function resolveMimeType($filePath)
+{
+    if (function_exists('mime_content_type')) {
+        $detected = @mime_content_type($filePath);
+        if ($detected !== false && $detected !== '') {
+            return $detected;
+        }
+    }
+
+    $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+    $map = array(
+        'jpg'  => 'image/jpeg',
+        'jpeg' => 'image/jpeg',
+        'png'  => 'image/png',
+        'gif'  => 'image/gif',
+        'webp' => 'image/webp',
+        'bmp'  => 'image/bmp',
+        'mp4'  => 'video/mp4',
+        'webm' => 'video/webm',
+        'ogv'  => 'video/ogg',
+        'ogg'  => 'video/ogg',
+        'mkv'  => 'video/x-matroska',
+        'avi'  => 'video/x-msvideo',
+        'mov'  => 'video/quicktime',
+    );
+
+    return isset($map[$ext]) ? $map[$ext] : 'application/octet-stream';
+}
+
+$mimeType = resolveMimeType($fullPath);
 
 $fp = @fopen($fullPath, 'rb');
 if (!$fp) {

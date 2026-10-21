@@ -8,6 +8,8 @@
   --text-primary: #e6e6e6;
   --text-secondary: #9a9a9a;
   --border-color: #3a3a3a;
+  /* Shared control height so every top-bar widget lines up on one baseline */
+  --ctrl-h: 34px;
 }
 
 * {
@@ -287,9 +289,10 @@ body {
 }
 
 .search-box input:focus {
-  border-color: var(--pink-cute);
-  background: rgba(255, 255, 255, 0.1);
-  box-shadow: 0 0 12px var(--pink-glow);
+  /* Reset the old standalone-field focus skin (wrapper handles the glow) */
+  border: none;
+  background: transparent;
+  box-shadow: none;
 }
 
 .search-icon {
@@ -321,9 +324,10 @@ body {
 
 .sort-select:hover,
 .sort-select:focus {
-  border-color: var(--accent);
-  background: rgba(255, 255, 255, 0.1);
-  box-shadow: 0 0 12px rgba(168, 85, 247, 0.3);
+  /* Reset the old standalone-select skin (wrapper handles the glow) */
+  border: none;
+  background: transparent;
+  box-shadow: none;
 }
 
 .sort-select option {
@@ -619,8 +623,8 @@ body {
 .top-bar-inner {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 12px 20px;
+  gap: 14px;
+  padding: 8px 16px;
   flex-wrap: wrap;
 }
 .brand {
@@ -628,63 +632,128 @@ body {
   align-items: center;
   gap: 10px;
   font-family: "UnifrakturMaguntia", "Cinzel", serif;
-  font-size: 1.6rem;
+  font-size: 1.3rem;
   color: var(--text-secondary);
   letter-spacing: 1px;
+  /* Reset the old sidebar spacing so the brand aligns with the other rows */
+  margin: 0;
+  padding: 0;
+  height: var(--ctrl-h);
+  flex: 0 0 auto;
+  white-space: nowrap;
 }
-.brand-icon { font-size: 1.4rem; color: var(--accent); }
+.brand-icon {
+  /* Reset the old floating gradient tile -> plain crimson glyph */
+  width: auto;
+  height: auto;
+  background: none;
+  border-radius: 0;
+  box-shadow: none;
+  animation: none;
+  font-size: 1.4rem;
+  color: var(--accent);
+  line-height: 1;
+  flex: 0 0 auto;
+}
 .mobile-toggle {
   display: none;
   background: transparent;
   border: 1px solid var(--border-color);
   color: var(--text-secondary);
-  font-size: 1.4rem;
-  padding: 6px 12px;
+  font-size: 1.1rem;
+  padding: 0 12px;
   cursor: pointer;
+  /* Match the control height so it sits on the same baseline */
+  height: var(--ctrl-h);
+  line-height: 1;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  border-radius: 0;
+  font-family: inherit;
 }
 .top-nav {
   display: flex;
+  align-items: center;
   gap: 4px;
-  flex: 1 1 auto;
+  /* Auto width: the free space goes to the spacer, not the nav */
+  flex: 0 0 auto;
 }
 .top-nav .nav-item,
 .top-controls .nav-item {
   color: var(--text-secondary);
   text-decoration: none;
-  padding: 8px 14px;
+  padding: 0 12px;
   border: 1px solid transparent;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   letter-spacing: 1px;
   text-transform: uppercase;
   transition: all 0.2s;
+  /* Same box height as the other controls -> straight baseline */
+  height: var(--ctrl-h);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  line-height: 1;
+  white-space: nowrap;
+  /* Reset the old sidebar hover/active transforms (they shifted the row) */
+  transform: none;
 }
 .top-nav .nav-item:hover,
 .top-controls .nav-item:hover {
   color: var(--text-primary);
   border-color: var(--border-color);
   background: rgba(139,0,0,0.15);
+  transform: none;
 }
 .top-nav .nav-item.active {
   color: #fff;
   border-color: var(--accent);
   background: rgba(139,0,0,0.35);
+  transform: none;
 }
 .top-controls {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   flex-wrap: wrap;
+  /* Push the whole control cluster to the right edge of the bar */
+  margin-left: auto;
 }
-.nav-item-logout { color: #ff6b6b; border-color: #5a2a2a; }
-.nav-item-logout:hover { background: rgba(139,0,0,0.4); color: #fff; }
+/* Scoped to beat `.top-nav .nav-item` / `.top-controls .nav-item` (0,2,0).
+   Resets the old sidebar `margin-top: auto` so it stays on the bar baseline. */
+.top-nav .nav-item.nav-item-logout,
+.top-controls .nav-item.nav-item-logout {
+  color: #ff6b6b;
+  border-color: #5a2a2a;
+  margin-top: 0;
+}
+.top-nav .nav-item.nav-item-logout:hover,
+.top-controls .nav-item.nav-item-logout:hover {
+  background: rgba(139,0,0,0.4);
+  color: #fff;
+}
 .search-box {
   display: flex;
   align-items: center;
+  gap: 8px;
   background: #0d0d0d;
   border: 1px solid var(--border-color);
-  padding: 6px 10px;
+  padding: 0 10px;
+  height: var(--ctrl-h);
+  flex: 0 0 auto;
 }
-.search-icon { color: var(--text-secondary); }
+.search-icon {
+  /* Was absolute (sidebar layout) -> keep it inline in the flex row */
+  position: static;
+  left: auto;
+  top: auto;
+  transform: none;
+  color: var(--text-secondary);
+  flex: 0 0 auto;
+  line-height: 1;
+}
 .search-box input {
   background: transparent;
   border: none;
@@ -692,12 +761,22 @@ body {
   outline: none;
   font-family: inherit;
   font-size: 0.9rem;
-  width: 180px;
+  /* Reset the old standalone-field padding (wrapper already pads) */
+  padding: 0;
+  height: calc(var(--ctrl-h) - 2px);
+  width: 200px;
+  min-width: 0;
+}
+.search-box:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 10px var(--pink-glow);
 }
 .sort-select-wrapper {
   background: #0d0d0d;
   border: 1px solid var(--border-color);
-  padding: 6px 10px;
+  padding: 0 10px;
+  height: var(--ctrl-h);
+  flex: 0 0 auto;
 }
 .sort-select {
   background: transparent;
@@ -706,24 +785,54 @@ body {
   outline: none;
   font-family: inherit;
   font-size: 0.9rem;
+  /* Reset the old standalone-select padding (wrapper already pads) */
+  padding: 0;
+  height: calc(var(--ctrl-h) - 2px);
+  line-height: 1;
+}
+.sort-select-wrapper:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 10px var(--pink-glow);
 }
 .item-counter-badge {
   color: var(--text-secondary);
   font-size: 0.85rem;
   letter-spacing: 1px;
   border: 1px solid var(--border-color);
-  padding: 6px 10px;
+  /* Match the control height so the row is perfectly even */
+  height: var(--ctrl-h);
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #0d0d0d;
+  border-radius: 0;
+  font-weight: 400;
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+/* Mid-width: shrink the search field so the whole control cluster stays on
+   one row instead of wrapping (it overflowed by ~1px at 1024px). */
+@media (max-width: 1100px) {
+  .top-controls { flex-wrap: nowrap; }
+  .search-box { flex: 0 1 auto; overflow: hidden; }
+  .search-box input { width: 170px; min-width: 90px; }
 }
 @media (max-width: 768px) {
-  .mobile-toggle { display: block; }
+  .mobile-toggle { display: flex; }
   .top-nav, .top-controls {
     display: none;
     width: 100%;
     flex-direction: column;
+    align-items: stretch;
     gap: 8px;
+    margin-left: 0;
   }
   .top-nav.open, .top-controls.open { display: flex; }
   .top-bar-inner { gap: 10px; }
+  .search-box { width: 100%; }
   .search-box input { width: 100%; }
+  .sort-select-wrapper, .item-counter-badge { width: 100%; }
+  .top-nav .nav-item, .top-controls .nav-item { width: 100%; }
 }
 
